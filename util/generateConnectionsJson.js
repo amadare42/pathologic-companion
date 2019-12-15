@@ -11,6 +11,6 @@ const { resolve } = require("path");
     for await (const record of parser) {
         result.push({ ...record, connections: record.connections.split(",").map(i => parseInt(i))});
     }
-    fs.writeFileSync(resolve(`${__dirname}/../data/connections.json`), JSON.stringify(result, null, 2));
+    fs.writeFileSync(resolve(`${__dirname}/../src/data/connections.json`), JSON.stringify(result, null, 2));
     console.log("ok");
 })();

@@ -1,330 +1,133 @@
-import React, { createRef, Ref } from 'react';
+import React from 'react';
 import './App.css';
-import { AutoSizer } from 'react-virtualized';
-import Hammer from 'react-hammerjs';
-import * as d3 from 'd3';
-import centroid from 'polygon-centroid';
-import { allAreas, Area, AreaKey, areas } from './areas';
+import { AreasInfo, MapView } from './components/mapView';
+import { AreaFill, AreaTransition } from './model';
+import {
+    areaNameToNumber,
+    numberToPolygon,
+} from './utils';
+import { AreaKey, steppe } from './data/areas';
+import connections from './data/connections.json';
 
-interface Point {
-    x: number;
-    y: number;
+interface AppState {
+    currentLocation: number;
+    prevLocation: number;
+    steps: number;
+    transition?: AreaTransition;
 }
 
-window.d3 = d3;
+class App extends React.Component<{}, AppState> {
 
+    state: AppState = {
+        currentLocation: 1,
+        prevLocation: 1,
+        steps: 200
+    };
 
-const zero = (): Point => ({ x: 0, y: 0 });
-
-interface MapViewState {
-    scale: number,
-    scaleStart: number,
-    pan: Point,
-    lastDelta: Point,
-    scaleCenter: Point,
-    points: Point[],
-    currentArea: AreaKey
-}
-
-function getRandomInt(min: number, max: number) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-interface Rectangle {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-
-}
-
-function getRectangle(points: Point[]): Rectangle {
-    let minX = NaN, minY = NaN, maxX = NaN, maxY = NaN;
-
-    for (let { x, y } of points) {
-        if (isNaN(minX) || x < minX) {
-            minX = x;
-        }
-        if (isNaN(maxX) || x > maxX) {
-            maxX = x;
-        }
-        if (isNaN(minY) || y < minY) {
-            minY = y;
-        }
-        if (isNaN(maxY) || y > maxY) {
-            maxY = y;
-        }
+    render() {
+        return (
+            <div className="App">
+                <div style={ { width: '100vw', height: '100vh' } }>
+                    <MapView areas={ this.getAreas() } onAreaClick={ this.onAreaClick }
+                             transition={ this.state.transition }/>
+                </div>
+            </div>
+        );
     }
 
-    return {
-        x: minX,
-        y: minY,
-        width: maxX - minX,
-        height: maxY - minY
-    };
-}
+    private onAreaClick = (areaKey: AreaKey) => {
+        const { currentLocation, prevLocation, steps } = this.state;
+        const location = areaNameToNumber(areaKey);
+        const isPossible = connections.find(con => con.number === currentLocation)!
+            .connections.indexOf(location) >= 0;
 
-export function quadIn(t: number) {
-    return t * t;
-}
-
-export function cubicOut(t: number) {
-    return --t * t * t + 1;
-}
-
-interface Particle {
-    href: string,
-    x: number,
-    y: number,
-    angle: number,
-}
-
-
-class MapView extends React.Component<{}, MapViewState> {
-
-    state: MapViewState = {
-        scale: 1,
-        scaleStart: 1,
-        pan: zero(),
-        lastDelta: zero(),
-        scaleCenter: zero(),
-        points: [],
-        currentArea: "area01"
-    };
-
-    private isPan: boolean = false;
-    private isZoom: boolean = false;
-
-    svgCanvasRef = createRef<SVGSVGElement>();
-
-    render = () => {
-        const { pan, scale } = this.state;
-        return <AutoSizer>
-            { ({ width, height }) =>
-                <Hammer options={ {
-                    recognizers: {
-                        pinch: { enable: true }
-                    }
-                } }
-                        onPan={ this.onPan } onPanStart={ this.onPanStart } onPanEnd={ this.onPanEnd }
-                        onPinch={ this.onPinch } onPinchStart={ this.onPinchStart } onPinchEnd={ this.onPinchEnd }>
-                    <svg id={ 'rootSvg' } width={ width } height={ height } ref={ this.svgCanvasRef }
-                         // onClick={this.onClick}
-                         viewBox={ `${ pan.x } ${ pan.y } ${ width / scale } ${ height / scale }` }
-                         onWheel={ this.onWheel }>
-                        <rect id={ 'test-rect' }/>
-
-                        <defs>
-                            <radialGradient id="bones-gradient">
-                                <stop offset="0%" style={ { stopColor: '#861000FF' } }/>
-                                <stop offset="100%" style={ { stopColor: '#86100000' } }/>
-                            </radialGradient>
-                            { Object.keys(areas).map(k => <mask id={`mask_${k}`} key={`mask_${k}`} />) }
-                        </defs>
-
-                        <image href="/image_133small.jpg"/>
-                        <g fill={ 'url(#bones-gradient)' }>
-                            { Object.keys(areas).map(k => <polygon mask={ `url(#mask_${k})` } key={k}
-                                                                   points={ allAreas[k].map(p => `${ p.x },${ p.y }`).join(' ') }
-                                                                   onClick={ () => this.onAreaClick(k as AreaKey) }/>) }
-                            <polygon points={ this.state.points.map(p => `${ p.x },${ p.y }`).join(' ') }/>
-                        </g>
-                    </svg>
-                </Hammer> }
-        </AutoSizer>
-    };
-
-    private onAreaClick = async (area: AreaKey) => {
-        if (this.isPan || this.isZoom) return;
-        this.setState({ currentArea: area });
-        this.moveHands(this.state.currentArea, area);
-        this.unselectArea(this.state.currentArea);
-        await new Promise(r => setTimeout(r, 300));
-        this.selectArea(area);
-    };
-
-    componentDidMount = async () => {
-        this.selectArea(this.state.currentArea);
-    };
-
-    private onWheel = (event: React.WheelEvent) => {
-        this.setState({ scale: this.state.scale - event.deltaY / 3000 });
-    };
-
-
-    private createHand = (sel: d3.Selection<any, any, any, any>, p: Particle) => {
-        const size = 150;
-        const { x, y, angle, href } = p;
-        return sel.append('image')
-            .attr('xlink:href', href)
-            .attr('width', size)
-            .attr('height', size)
-            .attr('x', x)
-            .attr('y', y)
-            .attr('transform', `rotate(${ angle }, ${ x + size / 2 }, ${ y + size / 2 })`)
-    };
-
-
-    private moveHands = async (from: AreaKey, to: AreaKey) => {
-
-        const center1 = centroid(allAreas[from]);
-        const center2 = centroid(allAreas[to]);
-
-        const animationTime = 300;
-        const particlesCount = 12;
-        const particleDissapearRange = 100;
-        const dispersion = 100;
-        const size = 150;
-
-        const xStep = (center2.x - center1.x) / particlesCount;
-        const yStep = (center2.y - center1.y) / particlesCount;
-
-        for (let i = 0; i < particlesCount; i++) {
-            const x = center1.x + xStep * i - size / 2 + getRandomInt(-dispersion, dispersion);
-            const y = center1.y + yStep * i - size / 2 + getRandomInt(-dispersion, dispersion);
-            const angle = getRandomInt(0, 360);
-            const delay = getRandomInt(animationTime - particleDissapearRange, animationTime + particleDissapearRange);
-
-            this.createHand(d3.select('#rootSvg'), { x, y, angle, href: '/hand_red.svg' })
-                .style('opacity', 0.6)
-                .transition()
-                .duration(delay)
-                .remove();
-            await new Promise(r => setTimeout(r, animationTime / particlesCount));
-        }
-    };
-
-    private selectArea = async (areaKey: AreaKey) => {
-        const rect = getRectangle(allAreas[areaKey]);
-        const maskSelector = `#mask_${areaKey}`;
-        const animationTime = 1000;
-        const particlesCount = 20;
-        const particleDissapearRange = 300;
-        const timePerParticle = animationTime / 2 / particlesCount;
-
-        let maskRect: d3.Selection<SVGRectElement, unknown, HTMLElement, unknown> = d3.select(`${ maskSelector } .maskRect`);
-        if (maskRect.empty()) {
-            maskRect = d3.select(maskSelector)
-                .append('rect');
+        if (
+            location === currentLocation
+            // || location === prevLocation
+            || steps === 0
+            || !isPossible
+        ) {
+            return;
         }
 
-        maskRect
-            .attr('x', rect.x)
-            .attr('y', rect.y)
-            .attr('width', rect.width)
-            .attr('height', rect.height)
-            .attr('fill', 'white')
-            .attr('class', 'maskRect')
-            .style('opacity', 0.000001)
-            .transition()
-            .duration(200)
-            .transition()
-            .duration(animationTime)
-            .ease(cubicOut)
-            .style('opacity', 1);
-
-        for (let i = 0; i < particlesCount; i++) {
-            const size = 150;
-            const x = rect.x + rect.width / 2 + getRandomInt(-rect.width / 2, rect.width / 2) - size / 2;
-            const y = rect.y + rect.height / 2 + getRandomInt(-rect.height / 2, rect.height / 2) - size / 2;
-            const angle = getRandomInt(0, 360);
-            const delay = getRandomInt(animationTime, animationTime + particleDissapearRange);
-
-            this.createHand(d3.select(maskSelector), { x, y, angle, href: '/hand_black.svg'})
-                .transition()
-                .duration(delay)
-                .remove();
-            await new Promise(r => setTimeout(r, timePerParticle));
-        }
-    };
-
-    private unselectArea = async (areaKey: AreaKey) => {
-        const rect = getRectangle(allAreas[areaKey]);
-        const maskSelector = `#mask_${areaKey}`;
-        const animationTime = 1000;
-        const particlesCount = 20;
-        const particleDissapearRange = 100;
-        const timePerParticle = animationTime / 2 / particlesCount;
-
-        d3.select(`${ maskSelector } .maskRect`)
-            .transition()
-            .duration(animationTime)
-            .ease(cubicOut)
-            .style('opacity', 0.00001)
-            .remove();
-
-        for (let i = 0; i < particlesCount; i++) {
-            const size = 150;
-            const x = rect.x + rect.width / 2 + getRandomInt(-rect.width / 2, rect.width / 2) - size / 2;
-            const y = rect.y + rect.height / 2 + getRandomInt(-rect.height / 2, rect.height / 2) - size / 2;
-            const angle = getRandomInt(0, 360);
-            const delay = getRandomInt(animationTime - particleDissapearRange, animationTime + particleDissapearRange);
-
-            this.createHand(d3.select(maskSelector), { x, y, angle, href: '/hand_black.svg' })
-                .transition()
-                .duration(delay)
-                .remove();
-            await new Promise(r => setTimeout(r, timePerParticle));
-        }
-    };
-
-    private onClick = (event: React.MouseEvent<any>) => {
-        if (this.isPan) return;
-        const x = event.clientX / this.state.scale + this.state.pan.x;
-        const y = event.clientY / this.state.scale + this.state.pan.y;
-        const points = [...this.state.points, { x, y }];
-        console.log(points);
+        console.log(this.getLocationInfo(currentLocation).name, '-->', this.getLocationInfo(location).name);
         this.setState({
-            points
+            currentLocation: location,
+            prevLocation: currentLocation,
+            steps: steps - 1,
+            transition: {
+                from: this.getSrcPolygon(currentLocation, location),
+                to: areaKey,
+                index: Date.now(),
+            }
         });
     };
 
-    private onPinch = (event: HammerInput) => {
-        this.setState({
-            scale: this.state.scaleStart * event.scale,
-        });
+    private getSrcPolygon = (location: number, target: number): AreaKey => {
+        if (location === 0) {
+            switch (target) {
+                case 1:
+                case 2:
+                    return steppe[0];
+
+                case 3:
+                case 4:
+                case 5:
+                    return steppe[1];
+
+                case 6:
+                case 7:
+                    return steppe[3];
+
+                default:
+                    return steppe[0];
+            }
+        }
+        return numberToPolygon(location);
     };
 
-    private onPinchEnd = (event: HammerInput) => {
-        this.isZoom = false;
-        this.setState({
-            scaleStart: this.state.scale
-        })
-    };
+    private getAreas = (): AreasInfo => {
+        const { currentLocation, prevLocation } = this.state;
+        const ar: Partial<AreasInfo> = {};
 
-    private onPinchStart = (event: HammerInput) => {
-        this.isZoom = true;
-    };
-
-    private onPanStart = (event: HammerInput) => {
-        this.isPan = true;
-        this.setState({ lastDelta: { x: event.deltaX, y: event.deltaY } });
-    };
-
-    private onPanEnd = (event: HammerInput) => { setTimeout(() =>this.isPan = false, 30) };
-
-    private onPan = (event: HammerInput) => {
-        const { lastDelta, pan: { x, y }, scale } = this.state;
-        const pan = {
-            x: x + (lastDelta.x - event.deltaX) / scale,
-            y: y + (lastDelta.y - event.deltaY) / scale
+        const setLocation = (loc: number, fill: AreaFill) => {
+            if (loc === 0) {
+                for (let st of steppe) {
+                    ar[st] = fill;
+                }
+            } else {
+                ar[numberToPolygon(loc)] = fill;
+            }
         };
-        this.setState({ pan, lastDelta: { x: event.deltaX, y: event.deltaY } });
+        const availableLocations = this.getAvailableLocations();
+
+        for (let i = 0; i <= 15; i++) {
+            const isAvailable = availableLocations.indexOf(i) >= 0;
+            const isPassed = i === prevLocation;
+            const isActive = i === currentLocation;
+
+            const fill: AreaFill = isActive
+                ? 'active'
+                : isPassed ? 'passed'
+                    : isAvailable ? 'available'
+                        : 'disabled';
+
+            setLocation(i, fill);
+        }
+
+        return ar as AreasInfo;
     };
 
+    private getAvailableLocations = () => {
+        const { currentLocation, prevLocation, steps } = this.state;
+        if (steps <= 0) return [];
+        return this.getLocationInfo(currentLocation).connections
+            .filter(loc => loc !== prevLocation);
+    };
+
+    private getLocationInfo = (location: number) => {
+        return connections[location]!;
+    };
 }
-
-const App: React.FC = () => {
-
-    return (
-        <div className="App">
-            <div style={ { width: '100vw', height: '100vh' } }>
-                <MapView/>
-            </div>
-        </div>
-    );
-};
 
 export default App;
