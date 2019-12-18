@@ -8,6 +8,7 @@ import {
 } from './utils';
 import { AreaKey, steppe } from './data/areas';
 import connections from './data/connections.json';
+import { ScrollingBackground } from './components/ScrollingBackground';
 
 interface AppState {
     currentLocation: number;
@@ -25,14 +26,19 @@ class App extends React.Component<{}, AppState> {
     };
 
     render() {
-        return (
-            <div className="App">
-                <div style={ { width: '100vw', height: '100vh' } }>
-                    <MapView areas={ this.getAreas() } onAreaClick={ this.onAreaClick }
-                             transition={ this.state.transition }/>
-                </div>
+        return <div className="App">
+            <div style={ { width: '100vw', height: '100vh' } }>
+                <ScrollingBackground />
             </div>
-        );
+        </div>
+        // return (
+        //     <div className="App">
+        //         <div style={ { width: '100vw', height: '100vh' } }>
+        //             <MapView areas={ this.getAreas() } onAreaClick={ this.onAreaClick }
+        //                      transition={ this.state.transition }/>
+        //         </div>
+        //     </div>
+        // );
     }
 
     private onAreaClick = (areaKey: AreaKey) => {

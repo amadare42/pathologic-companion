@@ -27,4 +27,9 @@ export interface AreaTransition {
     index: number;
 }
 
+export type Size = {
+    height: number;
+    width: number;
+}
+
 export type AreaFill = 'active' | 'available' | 'passed' | 'disabled';
