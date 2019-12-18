@@ -54,10 +54,12 @@ function loadTextureFromSvgPath(path: SVGPathElement, viewBox: string, resolutio
     p2.addPath(p, t);
     ctx.fillStyle = 'red';
     // ctx.stroke(p2);
-    ctx.fill(p);
-    document.body.appendChild(canvas);
+    ctx.fill(p2);
+    // document.body.appendChild(canvas);
 
-    return Texture.from(canvas, { autoSize: true, width: 9070, height: 6200 });
+    const tex = Texture.from(canvas, { autoSize: true, width: 9070, height: 6200 });
+    canvas.remove();
+    return tex;
 }
 
 type AreaTextures = { [key in AreaKey]: Texture };
@@ -65,12 +67,12 @@ type AreaTextures = { [key in AreaKey]: Texture };
 async function loadAreas() {
     const areas: AreaTextures = {} as any;
 
-    // var container = document.createElement('div');
-    // const domParser = new window.DOMParser();
-    // const data = await fetch('/polygons/pathologic_maplow.svg');
-    // const svgDocument = domParser.parseFromString(await data.text(), 'text/xml');
-    // container.appendChild(svgDocument.childNodes[0]!);
-    // const svg = container.lastChild! as SVGSVGElement;
+    var container = document.createElement('div');
+    const domParser = new window.DOMParser();
+    const data = await fetch('/polygons/pathologic_maplow.svg');
+    const svgDocument = domParser.parseFromString(await data.text(), 'text/xml');
+    container.appendChild(svgDocument.childNodes[0]!);
+    const svg = container.lastChild! as SVGSVGElement;
 
     // for (let a of Array.from(svg.querySelectorAll('path'))) {
     //     if (a.id !== 'area01') {
@@ -78,15 +80,15 @@ async function loadAreas() {
     //     }
     // }
     //
-    areas['area01'] = Texture.from('/polygons/pathologic_mapmax.svg', { autoSize: true, width: 9070, height: 6200 });
+    areas['area01'] = Texture.from('/polygons/pathologic_mapmed.svg', { autoSize: true });
 
-    // const width = svg.getAttribute('width') as any as number;
-    // const height = svg.getAttribute('height') as any as number;
+    const width = svg.getAttribute('width') as any as number;
+    const height = svg.getAttribute('height') as any as number;
     //
     // return {} as any;
     //
     // console.time('loading');
-    // for (let areaKey of areaKeys as AreaKey[]) {
+    // for (let areaKey of areaKeys.filter((_,idx) => idx < 10) as AreaKey[]) {
     //     let path = svg.querySelector('#' + areaKey) as SVGPathElement;
     //     if (!path) continue;
     //     let tex = loadTextureFromSvgPath(path, svg.getAttribute('viewBox')!, { width, height });
@@ -127,7 +129,7 @@ export class ScrollingBackground extends React.Component<Props, State> {
                     <Sprite texture={ this.textures.map }/>
                     {/*<Sprite texture={ this.textures.polygons } scale={ 2 } alpha={ 0.2 }/>*/ }
                     { this.renderAreas() }
-                    <Sprite texture={ this.textures.borders } scale={ 4 }/>
+                    <Sprite texture={ this.textures.borders } scale={ 2 }/>
                 </Container>
             </Stage>
         );
@@ -138,7 +140,7 @@ export class ScrollingBackground extends React.Component<Props, State> {
         if (!areas) return null;
         var result = [];
         for (let key of Object.keys(areas) as AreaKey[]) {
-            result.push(<Sprite texture={ areas[key] } scale={ 1 / resolutionFactor } alpha={ 0.8 } key={ key }/>)
+            result.push(<Sprite texture={ areas[key] } scale={ 0.5 } alpha={ 0.8 } key={ key }/>)
         }
         return result;
     }
