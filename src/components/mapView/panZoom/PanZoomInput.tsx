@@ -122,7 +122,10 @@ export class PanZoomInput extends React.Component<Props, State> {
             })
         });
         // TODO: find better way to prevent tap on pan end
-        setTimeout(() => this.isPan = false, 30)
+        setTimeout(() => {
+            this.isPan = false;
+            this.forceUpdate();
+        }, 30)
     };
 
     private onPan = (event: HammerInput) => {

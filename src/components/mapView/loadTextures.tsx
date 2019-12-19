@@ -1,14 +1,14 @@
-import { Texture, Polygon, Circle, IHitArea } from "pixi.js";
+import * as PIXI from "pixi.js";
 import { Depromisify } from '../../utils';
 import { AreaKey, areaKeys, areasBBoxes, areasDefinitions } from '../../data/areas';
 import React, { createContext, ReactNode } from 'react';
 
-export type TextureTile = { x: number, y: number, tex: Texture };
+export type TextureTile = { x: number, y: number, tex: PIXI.Texture };
 export type Textures = Depromisify<ReturnType<typeof loadTextures>>;
 export type AreaTiles = {
     key: AreaKey,
     tiles: TextureTile[],
-    hitArea: IHitArea
+    hitArea: PIXI.Polygon
 };
 
 async function loadTextures() {
@@ -34,7 +34,7 @@ function extractTiles(image: HTMLImageElement, width: number = 2048, height: num
             tiles.push({
                 x: ix * width,
                 y: iy * height,
-                tex: Texture.from(canvas, { mipmap: true })
+                tex: PIXI.Texture.from(canvas, { mipmap: true })
             });
         }
     }
@@ -72,8 +72,7 @@ async function loadAreas() {
         });
         areas.push({
             key: areaKey, tiles,
-            // hitArea: new Polygon(areasDefinitions[areaKey].map(({x,y}) => ([bbox.x - x, bbox.y - y])))
-            hitArea: new Circle(bbox.width / 2, bbox.height / 2, 300)
+            hitArea: new PIXI.Polygon(areasDefinitions[areaKey].map(({x,y}) => new PIXI.Point(x * 4, y * 4)))
         });
     }
     console.timeEnd('loading areas');

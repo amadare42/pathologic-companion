@@ -1,33 +1,40 @@
 import React from 'react';
-import { Container, Sprite, Stage } from '@inlet/react-pixi';
+import { Container, PixiComponent, Sprite, Stage } from '@inlet/react-pixi';
 import { AutoSizer } from 'react-virtualized';
 import { PanZoomInput, PanZoomState } from './panZoom/PanZoomInput';
 import { Size } from '../../model';
-import PIXI from 'pixi.js';
-import { LoadTextures, Textures } from './LoadTextures';
+import * as PIXI from 'pixi.js';
+import { LoadTextures, Textures } from './loadTextures';
+import { AreaSprite } from './areaSprite';
+import { AreaKey } from '../../data/areas';
+import { AreasInfo } from '../svgMapView';
 
 interface State {
 }
 
 interface Props {
-
+    areas: AreasInfo,
+    onAreaClick: (key: AreaKey) => void,
+    // TODO: transitions
+    transition?: any
 }
 
 export class MapView extends React.Component<Props, State> {
 
     state: State = {};
+    isMoving = false;
 
     containerRef = React.createRef<Container>();
 
     render = () => {
-
-        return this.renderWrapped(({ width, height, scale, pan, textures }) => {
-            if (!textures) return <div style={{width: '100vw', height: '100vh', backgroundColor: 'white', fontSize: '75px'}}>Loading textures...</div>;
+        return this.renderWrapped(({ width, height, scale, pan, textures, isPanning, isScaling }) => {
+            this.isMoving = isPanning || isScaling;
                 return <Stage width={ width } height={ height }>
                     <Container pivot={ [pan.x, pan.y] } ref={ this.containerRef } scale={ scale }>
                         { textures.mapTiles.map(({ tex, x, y }, i) => <Sprite key={ i } texture={ tex } x={ x } y={ y }/>) }
                         { this.renderAreaTiles(textures) }
-                        { textures.borderTiles.map(({tex, x, y}, i) => <Sprite key={i} texture={tex} x={x} y={y} /> ) }
+                        { textures.borderTiles.map(({ tex, x, y }, i) => <Sprite key={ i } texture={ tex } x={ x }
+                                                                                 y={ y }/>) }
                     </Container>
                 </Stage>;
             }
@@ -35,35 +42,34 @@ export class MapView extends React.Component<Props, State> {
     };
 
     renderAreaTiles = (textures: Textures) => {
-        console.log('map');
-        var t = textures.areas.flatMap(({ key, tiles, hitArea }) => {
-                const areaAlpha = Math.random();
-                return tiles.map(({ tex, x, y }, i) =>
-                    <Sprite key={ key + i } hitArea={hitArea}  interactive={ true } name={ key } mousemove={ key == 'area01' ? this.onAreaClick : undefined} alpha={ areaAlpha } tint={ 0x000000 } texture={ tex } x={ x }
-                            y={ y }/>
-                )
-            }
-        );
-        return t;
+        const { areas } = this.props;
+        return textures.areas.map(area => <AreaSprite area={ area } alpha={ areas[area.key] == 'active' ? 1 : 0 }
+                                                      onClick={ this.onAreaClick }/>);
     };
 
-    private onAreaClick() {
-        var sprite = (this as any as PIXI.Sprite);
-        sprite.alpha = Math.random();
+    private onAreaClick = (key: AreaKey) => {
+        if (!this.isMoving) {
+            this.props.onAreaClick(key);
+        }
     }
 
-    renderWrapped = (child: (arg: PanZoomState & Size & { textures: Textures | null }) => React.ReactNode) => (
+    renderWrapped = (child: (arg: PanZoomState & Size & { textures: Textures }) => React.ReactNode) => (
         <LoadTextures>
-            { (textures) =>
-                <AutoSizer>
+            { (textures) => {
+                if (!textures) return <div
+                    style={ { width: '100vw', height: '100vh', backgroundColor: 'white', fontSize: '75px' } }>Loading
+                    textures...</div>;
+                return <AutoSizer>
                     { ({ width, height }) => {
                         return (
                             <PanZoomInput
-                                children={ panZoom => <div onWheel={ panZoom.onWheel } style={ { width, height } }>
+                                children={ panZoom => <div key={ '2' } onWheel={ panZoom.onWheel }
+                                                           style={ { width, height } }>
                                     { child({ ...panZoom, width, height, textures }) }
                                 </div> }/>);
                     } }
-                </AutoSizer>
+                </AutoSizer>;
+            }
             }
         </LoadTextures>
     )

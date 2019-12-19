@@ -28,7 +28,7 @@ class App extends React.Component<{}, AppState> {
     render() {
         return <div className="App">
             <div style={ { width: '100vw', height: '100vh' } }>
-                <MapView />
+                <MapView areas={ this.getAreas() } onAreaClick={ this.onAreaClick } />
             </div>
         </div>
         // return (

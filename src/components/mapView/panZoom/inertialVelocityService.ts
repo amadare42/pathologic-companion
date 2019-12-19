@@ -31,7 +31,7 @@ export class InertialVelocityService {
         };
         this.cb(velocity);
         if (velocity.x !== 0 || velocity.y !== 0) {
-            setTimeout(this.tick, 16);
+            setTimeout(this.tick, 10);
         }
     };
 
