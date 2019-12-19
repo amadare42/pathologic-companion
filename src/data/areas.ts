@@ -21,6 +21,8 @@ export const areasDefinitions = {
  "steppe03": [{"x":1649,"y":1548},{"x":1628,"y":1453},{"x":1614,"y":1366},{"x":1614,"y":1230},{"x":1861,"y":1164},{"x":2013,"y":1056},{"x":2014,"y":1056},{"x":1964,"y":962},{"x":2065,"y":846},{"x":2111,"y":699},{"x":2133,"y":584},{"x":2030,"y":444},{"x":2156,"y":415},{"x":2262,"y":290},{"x":2264,"y":1160},{"x":2243,"y":1547}]
 };
 
+export const areasBBoxes = {"area01":{"x":162,"y":741,"width":2587,"height":2830},"area02":{"x":765,"y":2710,"width":1793,"height":2003},"area10":{"x":2563,"y":599,"width":1355,"height":1699},"area11":{"x":2549,"y":1989,"width":1955,"height":1804},"area15":{"x":3684,"y":1633,"width":1678,"height":1726},"area09":{"x":3785,"y":310,"width":1556,"height":1587},"area03":{"x":2420,"y":3724,"width":1338,"height":2036},"area04":{"x":3645,"y":3785,"width":1323,"height":1568},"area12":{"x":4359,"y":2282,"width":1606,"height":1695},"area05":{"x":4939,"y":3854,"width":1345,"height":1796},"area14":{"x":5337,"y":790,"width":1199,"height":1965},"area08":{"x":5393,"y":256,"width":2418,"height":1472},"area13":{"x":5789,"y":1472,"width":1638,"height":2392},"area07":{"x":7298,"y":1581,"width":1247,"height":2251},"area06":{"x":6119,"y":3325,"width":1933,"height":1588},"steppe01":{"x":-1,"y":2669,"width":2883,"height":3533},"steppe02":{"x":2803,"y":5153,"width":3566,"height":1046},"steppe03":{"x":6458,"y":1081,"width":2611,"height":5120}};
+
 export const steppe = ['steppe01', 'steppe02', 'steppe03'] as AreaKey[];
 export type AreaKey = keyof typeof areasDefinitions;
 export const areaKeys = Object.keys(areasDefinitions) as AreaKey[];

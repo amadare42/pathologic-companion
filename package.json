@@ -16,6 +16,7 @@
     "@types/react-hammerjs": "^1.0.1",
     "@types/react-svg-pan-zoom": "^3.3.0",
     "@types/react-virtualized": "^9.21.6",
+    "canvg": "^3.0.2",
     "csv-parse": "^4.8.2",
     "d3": "^5.14.2",
     "fast-memoize": "^2.5.1",
@@ -33,6 +34,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "start-local": "react-scripts start -- --host 0.0.0.0",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import { AreasInfo, MapView } from './components/mapView';
+import { AreasInfo, SvgMapView } from './components/svgMapView';
 import { AreaFill, AreaTransition } from './model';
 import {
     areaNameToNumber,
@@ -8,7 +8,7 @@ import {
 } from './utils';
 import { AreaKey, steppe } from './data/areas';
 import connections from './data/connections.json';
-import { ScrollingBackground } from './components/ScrollingBackground';
+import { MapView } from './components/mapView/MapView';
 
 interface AppState {
     currentLocation: number;
@@ -28,7 +28,7 @@ class App extends React.Component<{}, AppState> {
     render() {
         return <div className="App">
             <div style={ { width: '100vw', height: '100vh' } }>
-                <ScrollingBackground />
+                <MapView />
             </div>
         </div>
         // return (

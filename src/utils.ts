@@ -1,6 +1,7 @@
 import { AreaFill, Point, Rectangle } from './model';
 import { AreaKey, steppe } from './data/areas';
 import connections from './data/connections.json';
+
 const fastMemoize = require('fast-memoize');
 
 function memoize<T extends (...args: any[]) => any>(fn: T): T {
@@ -98,3 +99,4 @@ export const numberToPolygon = (index: number): AreaKey => {
     }
     return `area${index.toString().padStart(2, '0')}` as AreaKey;
 };
+export type Depromisify<T> = T extends Promise<infer D> ? D : T;
