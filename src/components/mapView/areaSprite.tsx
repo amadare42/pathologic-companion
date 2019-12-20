@@ -32,6 +32,7 @@ export class AreaSprite extends React.Component<Props> {
     };
 
     onClick = () => {
+        return;
         const { area, onClick } = this.props;
         onClick(area.key);
     }

@@ -8,6 +8,7 @@ import { LoadTextures, Textures } from './loadTextures';
 import { AreaSprite } from './areaSprite';
 import { AreaKey } from '../../data/areas';
 import { AreasInfo } from '../svgMapView';
+import ViewPort from './Viewport';
 
 interface State {
 }
@@ -27,15 +28,16 @@ export class MapView extends React.Component<Props, State> {
     containerRef = React.createRef<Container>();
 
     render = () => {
-        return this.renderWrapped(({ width, height, scale, pan, textures, isPanning, isScaling }) => {
-            this.isMoving = isPanning || isScaling;
+        return this.renderWrapped(({ textures, width, height }) => {
                 return <Stage width={ width } height={ height }>
-                    <Container pivot={ [pan.x, pan.y] } ref={ this.containerRef } scale={ scale }>
-                        { textures.mapTiles.map(({ tex, x, y }, i) => <Sprite key={ i } texture={ tex } x={ x } y={ y }/>) }
-                        { this.renderAreaTiles(textures) }
-                        { textures.borderTiles.map(({ tex, x, y }, i) => <Sprite key={ i } texture={ tex } x={ x }
-                                                                                 y={ y }/>) }
-                    </Container>
+                    <ViewPort>
+                        <Container ref={ this.containerRef }>
+                            { textures.mapTiles.map(({ tex, x, y }, i) => <Sprite key={ i } texture={ tex } x={ x } y={ y }/>) }
+                            { this.renderAreaTiles(textures) }
+                            { textures.borderTiles.map(({ tex, x, y }, i) => <Sprite key={ i } texture={ tex } x={ x }
+                                                                                     y={ y }/>) }
+                        </Container>
+                    </ViewPort>
                 </Stage>;
             }
         );
@@ -53,7 +55,7 @@ export class MapView extends React.Component<Props, State> {
         }
     }
 
-    renderWrapped = (child: (arg: PanZoomState & Size & { textures: Textures }) => React.ReactNode) => (
+    renderWrapped = (child: (arg: Size & { textures: Textures }) => React.ReactNode) => (
         <LoadTextures>
             { (textures) => {
                 if (!textures) return <div
@@ -61,12 +63,13 @@ export class MapView extends React.Component<Props, State> {
                     textures...</div>;
                 return <AutoSizer>
                     { ({ width, height }) => {
-                        return (
-                            <PanZoomInput
-                                children={ panZoom => <div key={ '2' } onWheel={ panZoom.onWheel }
-                                                           style={ { width, height } }>
-                                    { child({ ...panZoom, width, height, textures }) }
-                                </div> }/>);
+                        return child({ width, height, textures});
+                        // return (
+                        //     <PanZoomInput
+                        //         children={ panZoom => <div key={ '2' } onWheel={ panZoom.onWheel }
+                        //                                    style={ { width, height } }>
+                        //             { child({ ...panZoom, width, height, textures }) }
+                        //         </div> }/>);
                     } }
                 </AutoSizer>;
             }
