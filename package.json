@@ -20,6 +20,7 @@
     "csv-parse": "^4.8.2",
     "d3": "^5.14.2",
     "fast-memoize": "^2.5.1",
+    "pixi-particles": "^4.2.0",
     "pixi-viewport": "^4.4.1",
     "pixi.js": "latest",
     "polygon-centroid": "^1.1.0",

@@ -64,19 +64,19 @@ export class SvgMapView extends React.Component<Props, State> {
             mapViewService.setAreaFill(areaKey, fill, 'disabled');
         }
 
-        setInterval(() => {
-            mapViewService.createHand(d3.select(refs.rootSvg('idSelector')), {
-                y: 500 + getRandomInt(-150, 150),
-                x: 500 + getRandomInt(-150, 150),
-                angle: getRandomInt(0, 180),
-                href: '/hand_white.svg'
-            }, 340)
-                .style('opacity', 0.8)
-                .transition()
-                .delay(16)
-                .style('opacity', 1e-6)
-                .remove();
-        }, 16);
+        // setInterval(() => {
+        //     mapViewService.createHand(d3.select(refs.rootSvg('idSelector')), {
+        //         y: 500 + getRandomInt(-150, 150),
+        //         x: 500 + getRandomInt(-150, 150),
+        //         angle: getRandomInt(0, 180),
+        //         href: '/hand_white.svg'
+        //     }, 340)
+        //         .style('opacity', 0.8)
+        //         .transition()
+        //         .delay(16)
+        //         .style('opacity', 1e-6)
+        //         .remove();
+        // }, 16);
     }
 
     private isPan: boolean = false;
@@ -107,8 +107,8 @@ export class SvgMapView extends React.Component<Props, State> {
                             <MaskDefs/>
                         </defs>
 
-                        <image href="/image_133max.jpg" width="2268px" height="1552px"/>
-                        {/*<AreaPolygons onAreaClick={ this.onAreaClickProxy }/>*/}
+                        {/*<image href="/image_133max.jpg" width="2268px" height="1552px"/>*/}
+                        <AreaPolygons onAreaClick={ this.onAreaClickProxy }/>
                         <g fill={ 'url(#fill-active)' }>
                             <polygon points={ this.state.points.map(p => `${ p.x },${ p.y }`).join(' ') }/>
                         </g>

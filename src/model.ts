@@ -27,7 +27,10 @@ export interface AreaTransition {
     index: number;
 }
 
-export type Size = {
+export interface BBox extends Point, Size {
+}
+
+export interface Size {
     height: number;
     width: number;
 }

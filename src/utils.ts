@@ -67,7 +67,10 @@ export const refs = {
     rootSvg: presentVal('rootSvg'),
     areaPolygon: present<AreaKey>(key => key),
     borderId: present<AreaKey>(key => `borders_${key}`),
-    vectorBordersId: presentVal(`vector_borders`)
+    vectorBordersId: presentVal(`vector_borders`),
+
+    //paths
+    maskPath: present<AreaKey>(key => `areas/mask/${key}.png`)
 };
 
 export const getConnectedAreas = (areaKey: AreaKey) => {
@@ -92,6 +95,10 @@ export const numberToPolygonNames = (index: number): AreaKey[] => {
     }
     return [numberToPolygon(index)];
 };
+
+export const resolveOnCb = (cb: any) => new Promise(r => cb ? cb(r) : r());
+
+export const pointsEq = (point1: Point, point2: Point) => point1.x === point2.x && point1.y === point2.y;
 
 export const numberToPolygon = (index: number): AreaKey => {
     if (index === 0) {

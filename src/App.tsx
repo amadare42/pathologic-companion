@@ -8,7 +8,7 @@ import {
 } from './utils';
 import { AreaKey, steppe } from './data/areas';
 import connections from './data/connections.json';
-import { MapView } from './components/mapView/MapView';
+import { MapView } from './components/mapView/mapView';
 
 interface AppState {
     currentLocation: number;
@@ -28,13 +28,13 @@ class App extends React.Component<{}, AppState> {
     render() {
         return <div className="App">
             <div style={ { width: '100vw', height: '100vh' } }>
-                <MapView areas={ this.getAreas() } onAreaClick={ this.onAreaClick } />
+                <MapView areas={ this.getAreas() } onAreaClick={ this.onAreaClick } transition={ this.state.transition } />
             </div>
         </div>
         // return (
         //     <div className="App">
         //         <div style={ { width: '100vw', height: '100vh' } }>
-        //             <MapView areas={ this.getAreas() } onAreaClick={ this.onAreaClick }
+        //             <SvgMapView areas={ this.getAreas() } onAreaClick={ this.onAreaClick }
         //                      transition={ this.state.transition }/>
         //         </div>
         //     </div>

@@ -2,21 +2,28 @@ import * as PIXI from "pixi.js";
 import { Depromisify } from '../../utils';
 import { AreaKey, areaKeys, areasBBoxes, areasDefinitions } from '../../data/areas';
 import React, { createContext, ReactNode } from 'react';
+import { BBox, Point } from '../../model';
 
 export type TextureTile = { x: number, y: number, tex: PIXI.Texture };
 export type Textures = Depromisify<ReturnType<typeof loadTextures>>;
 export type AreaTiles = {
     key: AreaKey,
-    tiles: TextureTile[],
-    hitArea: PIXI.Polygon
+    tex: PIXI.Texture,
+    bbox: BBox,
+    hitArea: PIXI.Polygon,
+    centroid: Point
 };
 
 async function loadTextures() {
-    return {
+    console.time('loading textures');
+    const textures =  {
         mapTiles: await splitImgToTiles('/image_133max.jpg'),
         borderTiles: await splitImgToTiles('/borders.svg'),
         areas: await loadAreas()
-    }
+    };
+    console.timeEnd('loading textures');
+
+    return textures;
 }
 
 function extractTiles(image: HTMLImageElement, width: number = 2048, height: number = 2048) {
@@ -52,27 +59,25 @@ async function splitImgToTiles(href: string, width: number = 2048, height: numbe
 
 async function loadAreas() {
     const areas: AreaTiles[] = [];
-    const svg = await loadOffscreenSvg('/polygons/pathologic_mapmax.svg');
+    // const svg = await loadOffscreenSvg('/polygons/pathologic_mapmax.svg');
 
     console.time('loading areas');
     for (let areaKey of areaKeys) {
-        let path = svg.querySelector('#' + areaKey) as SVGPathElement;
+        // let path = svg.querySelector('#' + areaKey) as SVGPathElement;
         const bbox = areasBBoxes[areaKey];
 
-        const canvas = document.createElement('canvas');
-        canvas.width = bbox.width;
-        canvas.height = bbox.height;
-        const context = canvas.getContext('2d')!;
+        const centroid = {
+            x: bbox.width / 2 + bbox.x,
+            y: bbox.height / 2 + bbox.y
+        };
 
-        context.fill(new Path2D(path.getAttribute('d')!));
-        const tiles = await splitImgToTiles('/polygons/areas_png/' + areaKey + '.png');
-        tiles.forEach(tile => {
-            tile.x += bbox.x;
-            tile.y += bbox.y;
-        });
+        const tex = PIXI.Texture.from(`/polygons/areas_png_low/${areaKey}.png`);
         areas.push({
-            key: areaKey, tiles,
-            hitArea: new PIXI.Polygon(areasDefinitions[areaKey].map(({x,y}) => new PIXI.Point(x * 4, y * 4)))
+            key: areaKey,
+            bbox,
+            tex,
+            hitArea: new PIXI.Polygon(areasDefinitions[areaKey].map(({x,y}) => new PIXI.Point(x * 4, y * 4))),
+            centroid
         });
     }
     console.timeEnd('loading areas');
@@ -80,7 +85,7 @@ async function loadAreas() {
     return areas;
 }
 
-async function loadOffscreenSvg(href: string) {
+export async function loadOffscreenSvg(href: string) {
     const container = document.createElement('div');
     const domParser = new window.DOMParser();
     const data = await fetch(href);
@@ -93,7 +98,10 @@ async function loadOffscreenSvg(href: string) {
 export const TexturesContext = createContext<Textures | null>(null);
 
 type State = { textures: Textures | null };
-type Props = { children: (textures: Textures | null) => ReactNode };
+type Props = {
+    children: (textures: Textures | null) => ReactNode;
+    onLoaded: (textures: Textures) => void;
+};
 
 export class LoadTextures extends React.Component<Props, State> {
 
@@ -101,7 +109,10 @@ export class LoadTextures extends React.Component<Props, State> {
 
     componentDidMount(): void {
         loadTextures()
-            .then(textures => this.setState({ textures }))
+            .then(textures => {
+                this.setState({ textures });
+                this.props.onLoaded(textures)
+            });
     }
 
     render = () => {

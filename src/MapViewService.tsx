@@ -32,7 +32,6 @@ export type D3Rect = d3.Selection<SVGRectElement, unknown, HTMLElement, unknown>
 class MapViewService {
 
     setAreaFill = async (areaKey: AreaKey, fill: AreaFill, prevFill: AreaFill) => {
-        return;
         if (fill === prevFill) {
             return;
         }
@@ -48,6 +47,8 @@ class MapViewService {
 
         switch (fill) {
             case 'available':
+                this.fillFadeOut(poly);
+                break;
                 d3.select(refs.areaPolygon(areaKey, 'idSelector'))
                     .attr('fill', refs.fillId(fill, 'url'));
                 break;
@@ -68,6 +69,8 @@ class MapViewService {
                 break;
 
             case 'passed':
+                this.fillFadeOut(poly);
+                break;
                 d3.select(refs.areaPolygon(areaKey, 'idSelector'))
                     .attr('fill', refs.fillId(fill, 'url'));
                 const rect = getRectangle(areas[areaKey]);
