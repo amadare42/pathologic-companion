@@ -93,14 +93,14 @@ export const numberToPolygonNames = (index: number): AreaKey[] => {
     if (index === 0) {
         return steppe as AreaKey[];
     }
-    return [numberToPolygon(index)];
+    return [locationToAreaKey(index)];
 };
 
 export const resolveOnCb = (cb: any) => new Promise(r => cb ? cb(r) : r());
 
 export const pointsEq = (point1: Point, point2: Point) => point1.x === point2.x && point1.y === point2.y;
 
-export const numberToPolygon = (index: number): AreaKey => {
+export const locationToAreaKey = (index: number): AreaKey => {
     if (index === 0) {
         return steppe[0];
     }

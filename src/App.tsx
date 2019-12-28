@@ -1,14 +1,14 @@
 import React from 'react';
 import './App.css';
-import { AreasInfo, SvgMapView } from './components/svgMapView';
-import { AreaFill, AreaTransition } from './model';
+import { AreaFills, SvgMapView } from './components/svgMap/svgMapView';
+import { AreaFill, AreaToken, AreaTransition, MapSnapshot } from './model';
 import {
     areaNameToNumber,
-    numberToPolygon,
+    locationToAreaKey,
 } from './utils';
 import { AreaKey, steppe } from './data/areas';
 import connections from './data/connections.json';
-import { MapView } from './components/mapView/mapView';
+import MapView from './components/mapView/mapView';
 
 interface AppState {
     currentLocation: number;
@@ -28,13 +28,13 @@ class App extends React.Component<{}, AppState> {
     render() {
         return <div className="App">
             <div style={ { width: '100vw', height: '100vh' } }>
-                <MapView areas={ this.getAreas() } onAreaClick={ this.onAreaClick } transition={ this.state.transition } />
+                <MapView mapSnapshot={ this.getMapSnapshot() } onAreaClick={ this.onAreaClick } />
             </div>
         </div>
         // return (
         //     <div className="App">
         //         <div style={ { width: '100vw', height: '100vh' } }>
-        //             <SvgMapView areas={ this.getAreas() } onAreaClick={ this.onAreaClick }
+        //             <SvgMapView areas={ this.getAreaFills() } onAreaClick={ this.onAreaClick }
         //                      transition={ this.state.transition }/>
         //         </div>
         //     </div>
@@ -89,12 +89,32 @@ class App extends React.Component<{}, AppState> {
                     return steppe[0];
             }
         }
-        return numberToPolygon(location);
+        return locationToAreaKey(location);
     };
 
-    private getAreas = (): AreasInfo => {
+    private getMapSnapshot = (): MapSnapshot => {
+        return {
+            fills: this.getAreaFills(),
+            transition: this.state.transition,
+            tokens: this.getTokens()
+        }
+    };
+
+    private getTokens = (): AreaToken[] => {
+        if (this.state.prevLocation === this.state.currentLocation) {
+            return [];
+        }
+        const isSteppe = this.state.prevLocation === 0;
+
+        if (isSteppe) {
+            return steppe.map(area => ({ areaKey: area, token: 'step' }));
+        }
+        return [{ areaKey: locationToAreaKey(this.state.prevLocation), token: 'step' }];
+    };
+
+    private getAreaFills = (): AreaFills => {
         const { currentLocation, prevLocation } = this.state;
-        const ar: Partial<AreasInfo> = {};
+        const ar: Partial<AreaFills> = {};
 
         const setLocation = (loc: number, fill: AreaFill) => {
             if (loc === 0) {
@@ -102,7 +122,7 @@ class App extends React.Component<{}, AppState> {
                     ar[st] = fill;
                 }
             } else {
-                ar[numberToPolygon(loc)] = fill;
+                ar[locationToAreaKey(loc)] = fill;
             }
         };
         const availableLocations = this.getAvailableLocations();
@@ -121,7 +141,7 @@ class App extends React.Component<{}, AppState> {
             setLocation(i, fill);
         }
 
-        return ar as AreasInfo;
+        return ar as AreaFills;
     };
 
     private getAvailableLocations = () => {

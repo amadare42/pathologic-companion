@@ -5,36 +5,29 @@ import React from 'react';
 import { RawDisplayObj } from '../pixiUtils/rawDisplayObj';
 import { withPixiApp } from '@inlet/react-pixi';
 import { RafTicker, RafTimestamp } from '../pixiUtils/rafTicker';
+import { AREA, COLORS } from '../animationConstants';
+import { Resources } from '../loadResources';
 
 interface Props {
     fill: AreaFill;
     bbox: BBox;
     sizeMult: number;
     app: PIXI.Application;
+    resources: Resources;
 }
-
-const FillTime = 1000;
-const ParticlesCount = 60;
-const FadingStart = 0.8;
-const ParticleTtlSpreadPc = 0.1;
-const FadingStartOn = FillTime * FadingStart;
-const FadingDelta = 1 / FadingStartOn;
-
-const ActiveTint = 0x811000;
 
 class AreaSpriteFill extends React.Component<Props, any> {
     private container: PIXI.Container;
     private rect: PIXI.Sprite;
-    private handTex = PIXI.Texture.from('hand_red.svg');
     private emitter: particles.Emitter;
 
     private ticker: RafTicker;
 
     private fadingMod: number = 1;
-    private shouldResetFreq: boolean = false;
 
     constructor(props: Props) {
         super(props);
+
         const { bbox, sizeMult } = props;
 
         // create area container
@@ -44,7 +37,7 @@ class AreaSpriteFill extends React.Component<Props, any> {
 
         // create filling rect
         this.rect = new PIXI.Sprite(PIXI.Texture.WHITE);
-        this.rect.tint = ActiveTint;
+        this.rect.tint = COLORS.activeTint;
         Object.assign(this.rect, { width: props.bbox.width, height: props.bbox.height });
         this.rect.alpha = 0;
         this.container.addChild(this.rect);
@@ -57,10 +50,10 @@ class AreaSpriteFill extends React.Component<Props, any> {
     }
 
     private createEmitter(bbox: BBox, sizeMult: number) {
-        const baseLifetime = FillTime * 0.001;
-        const ttlMod = ParticleTtlSpreadPc * baseLifetime;
+        const baseLifetime = AREA.fillTime * 0.001;
+        const ttlMod = AREA.particlesTtlSpread * baseLifetime;
 
-        return new particles.Emitter(this.container, [this.handTex], {
+        return new particles.Emitter(this.container, [this.props.resources.redHand], {
             scale: {
                 start: 2,
                 end: 2
@@ -90,8 +83,8 @@ class AreaSpriteFill extends React.Component<Props, any> {
                 x: 0,
                 y: 0
             },
-            frequency: FillTime / (ParticlesCount * sizeMult) * 0.001,
-            maxParticles: ParticlesCount * sizeMult
+            frequency: AREA.fillTime / (AREA.particlesCount * sizeMult) * 0.001,
+            maxParticles: AREA.particlesCount * sizeMult
         });
     }
 
@@ -108,68 +101,75 @@ class AreaSpriteFill extends React.Component<Props, any> {
     transitToFill = (fill: AreaFill, prevFill?: AreaFill) => {
         switch (fill) {
             case 'disabled':
-                this.rect.tint = 0x000000;
-                this.rect.alpha = 1;
-                this.rect.blendMode = PIXI.BLEND_MODES.DARKEN;
-                this.emitter.emit = false;
-                this.fadingMod = 0;
-                break;
-
             case 'available':
-                this.rect.tint = 0xffffff;
-                this.rect.alpha = 0.3;
-                this.fadingMod = 0;
+                this.goToDisabled();
                 break;
 
             case 'passed':
-                this.ticker.start();
-                const freq = this.emitter.frequency;
-                this.emitter.frequency = 0.001;
-                this.emitter.update(0.001 * ParticlesCount * this.props.sizeMult);
-                this.rect.alpha = 0.3;
-                this.emitter.frequency = freq;
-                this.emitter.emit = false;
-                this.fadingMod = -1;
+                this.goToPassed();
                 break;
 
             case 'active':
                 this.goToActive();
                 break;
         }
-    }
+    };
+
+    goToDisabled = () => {
+        this.rect.alpha = 0;
+        this.emitter.emit = false;
+        this.fadingMod = 0;
+    };
 
     goToActive = () => {
-        this.rect.tint = ActiveTint;
+        this.rect.tint = COLORS.activeTint;
         this.ticker.start();
         this.emitter.emit = true;
         this.fadingMod = 1;
+    };
+
+    goToPassed = () => {
+        this.ticker.start();
+        const freq = this.emitter.frequency;
+        this.emitter.frequency = 0.001;
+        this.emitter.update(0.001 * AREA.particlesCount * this.props.sizeMult);
+        this.rect.alpha = 0.3;
+        this.emitter.frequency = freq;
+        this.emitter.emit = false;
+        this.fadingMod = -1;
     };
 
     rafTick = (ts: RafTimestamp) => {
         this.updateRect(ts);
 
         this.emitter.update(ts.elapsed * 0.001);
-        if (this.shouldResetFreq) {
-            this.emitter.frequency = FillTime / (ParticlesCount * this.props.sizeMult) * 0.001;
+        if (ts.elapsedTotal > AREA.fillTime) {
             this.emitter.emit = false;
         }
         return true;
     };
 
     updateRect = (ts: RafTimestamp) => {
-        if (ts.elapsedTotal >= FillTime * FadingStart) {
-            this.rect.alpha += FadingDelta * this.fadingMod * ts.elapsed;
+        if (ts.elapsedTotal >= AREA.fillTime * AREA.fadingStart) {
+            this.rect.alpha += AREA.fadingDelta * this.fadingMod * ts.elapsed;
             if (this.rect.alpha > 1) {
                 this.rect.alpha = 1;
             }
             if (this.rect.alpha < 0) {
                 this.rect.alpha = 0;
             }
+            if (this.rect.alpha === 1 && this.fadingMod >= 0) {
+                this.ticker.stop();
+            }
         }
     };
 
     render = () => {
         return <RawDisplayObj obj={ this.container }/>
+    };
+
+    componentWillUnmount(): void {
+        this.ticker.stop();
     }
 }
 

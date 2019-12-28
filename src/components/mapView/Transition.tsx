@@ -3,7 +3,7 @@ import { AreaTransition, Point, Rectangle } from '../../model';
 import * as PIXI from 'pixi.js';
 import * as particles from 'pixi-particles';
 import { _ReactPixi, Graphics, PixiComponent } from '@inlet/react-pixi';
-import { Textures } from './loadTextures';
+import { Resources } from './loadResources';
 import { getRandomInt, pointsEq } from '../../utils';
 
 interface Props {
@@ -149,19 +149,19 @@ const Emitter = PixiComponent<Props, PIXI.Container>("Emitter", {
 
 interface TransitionProps {
     transition?: AreaTransition;
-    textures: Textures;
+    resources: Resources;
 }
 
 export class Transition extends React.Component<TransitionProps> {
 
     render = () => {
-        const {transition, textures} = this.props;
+        const {transition, resources} = this.props;
         console.log(transition);
         if (!transition) return null;
 
-        const from = textures.areas.find(a => a.key === transition.from);
-        const to = textures.areas.find(a => a.key === transition.to);
+        const from = resources.areas.find(a => a.key === transition.from);
+        const to = resources.areas.find(a => a.key === transition.to);
         console.log(from, to);
-        return <Emitter href={'/hand_red.svg'} from={from!.centroid} to={to!.centroid} />
+        return <Emitter href={'/hand_red.svg'} from={from!.tokenPosition} to={to!.tokenPosition} />
     }
 }

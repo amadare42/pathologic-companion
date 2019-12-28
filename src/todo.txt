@@ -1,0 +1,15 @@
++ smooth transition to desaturated
++ stop particle generation on transition end
++ "passed" notation
++ util to split textures to images
++ async loading
++ switching texture quality
++ text overlay
+
+- saving / restoring state
+- siege token should be on top of borders
+- start making ui already?
+- darker borders on inactive areas
+- fix camera clamping
+- more accurate overlay position
+- progressive texture quality ?

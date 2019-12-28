@@ -1,0 +1,18 @@
+split map to tiles (C!)
+    magick convert max.jpg -crop 2048x2048 -set filename: tile "%[fx:page.x/2048]_%[fx:page.y/2048]" +repage +adjoin "max_tile_%[filename:tile].jpg"
+    <script> tileset <scale>
+
+split (+)
+    ls | %{ mkdir $_.BaseName }
+    ls -Filter *.png | %{ magick convert $_ -crop 2048x2048 -set filename:tile "%[fx:page.x/2048]_%[fx:page.y/2048]" +repage "$($_.BaseName)/%[filename:tile].png" }
+    <script> mtiles <scale>
+
+desaturate (+)
+    ls | %{ magick convert $_ -type GrayscaleMatte $_ }
+
+resize (C!)
+    magick mogrify -resize 25% *.png
+
+remove pngs:
+    ls -Filter *.png | %{ del $_ }
+

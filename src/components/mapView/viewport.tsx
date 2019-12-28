@@ -8,8 +8,8 @@ const ViewportComponent = PixiComponent<Props & { app: PIXI.Application }, Viewp
         const viewport = new Viewport({
             worldWidth: 9070,
             worldHeight: 6200,
-            screenHeight: 9070 / 10,
-            screenWidth: 6200 / 10,
+            screenHeight: props.screenHeight,
+            screenWidth: props.screenWidth,
             ticker: props.app.ticker,
             // TODO: provide screen coordinates
             interaction: props.app.renderer.plugins.interaction,
@@ -20,27 +20,18 @@ const ViewportComponent = PixiComponent<Props & { app: PIXI.Application }, Viewp
             .drag()
             .pinch()
             .wheel()
-            // .clampZoom({
-            //     minHeight: 6200 / 6,
-            //     maxHeight: 6200
-            // })
-            // .bounce({
-            //     time: 300
-            // } as BounceOptions)
+            .bounce({
+                time: 300
+            } as BounceOptions)
             .decelerate();
         viewport.setZoom(0.1);
 
         return viewport;
     },
-    // applyProps: (instance, oldProps, newProps) => {
-    //     console.log("applyProps");
-    // },
-    // didMount: () => {
-    //     console.log("didMount");
-    // },
-    // willUnmount: () => {
-    //     console.log("willUnmount");
-    // },
+    applyProps(instance, oldProps, newProps): void {
+        instance.screenHeight = newProps.screenHeight;
+        instance.screenWidth = newProps.screenWidth;
+    }
 });
 
 interface Props {
@@ -50,8 +41,5 @@ interface Props {
     screenHeight: number;
 }
 
-export default (props: Props) => {
-    const app = useApp();
-    return <ViewportComponent app={app} {...props}>{props.children}</ViewportComponent>;
-};
+export default (props: Props) => <ViewportComponent app={useApp()} {...props} children={props.children} />
 
