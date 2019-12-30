@@ -3,6 +3,7 @@ import { splitImgToTiles } from '../pixiUtils/canvasTiling';
 import * as PIXI from "pixi.js";
 import { AreaKey, areaKeys, areasBBoxes, hitAreas, tokenPositions } from '../../../data/areas';
 import { Depromisify } from '../../../utils';
+import { Character, characters } from '../../../data/characters';
 
 export interface TextureTile {
     x: number,
@@ -28,19 +29,23 @@ export type AreaData = {
 }
 
 
-export async function loadResources(quality: QualityPreset) {
+export async function loadResources(app: PIXI.Application, quality: QualityPreset) {
     console.log(`loading ${quality} preset...`);
 
-    const [mapTiles, areas, borderTiles] = await timed('total', () => Promise.all([
+    const [mapTiles, areas, borderTiles, crows, characterCards] = await timed('total', () => Promise.all([
         timed('map', () => loadMapTiles(quality)),
         timed('areas', () => loadAreas(quality)),
-        splitImgToTiles('/borders.svg')
+        splitImgToTiles('/borders.svg'),
+        loadCrowsTextures(),
+        loadCharacterCards(app.loader)
     ]));
 
     const data = {
         mapTiles,
         areas,
         borderTiles,
+        crows,
+        characterCards,
         whiteHand: PIXI.Texture.from('icons/hand_white.svg'),
         redHand: PIXI.Texture.from('icons/hand_red.svg'),
         siegeToken: PIXI.Texture.from('icons/siege.png'),
@@ -53,6 +58,7 @@ export async function loadResources(quality: QualityPreset) {
     console.log('loaded data:', data);
     return data;
 }
+
 
 export async function loadMapTiles(quality: QualityPreset) {
     const rootPath = `map/tiles-${quality}`;
@@ -133,6 +139,27 @@ export async function loadAreaOverlayTiles(quality: QualityPreset) {
         }
     }
 
+}
+
+export function loadCrowsTextures() {
+    let textures = [];
+    for (let i = 0; i<=17; i++) {
+        textures.push(PIXI.Texture.from(`ui/crowSprites/crow_${i}.png`));
+    }
+    return textures;
+}
+
+export async function loadCharacterCards(loader: PIXI.Loader) {
+    let obj: { [key: string]: PIXI.BaseTexture } = {} as any;
+    loader.on('progress', console.log);
+    let onComplete = new Promise(r => loader.onComplete.add(r));
+    for (let character of characters) {
+        loader.add(`cards/${character.id}.jpg`);
+        obj[character.id] = new PIXI.BaseTexture(`cards/${character.id}.jpg`);
+    }
+    loader.load();
+    await onComplete;
+    return obj;
 }
 
 const timerKeys = {

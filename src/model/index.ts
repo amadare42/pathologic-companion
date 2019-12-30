@@ -1,5 +1,4 @@
 import { AreaKey } from '../data/areas';
-import { AreaFills } from '../components/svgMap/svgMapView';
 
 export interface Rectangle {
     x: number;
@@ -36,7 +35,7 @@ export interface Size {
     width: number;
 }
 
-export type AreaTokenType = 'start' | 'step' | 'step2';
+export type AreaTokenType = 'start' | 'step' | 'step2' | 'siege';
 
 export interface AreaToken {
     areaKey: AreaKey;
@@ -49,7 +48,7 @@ export interface MapSnapshot {
     tokens: AreaToken[];
 }
 
-export type AreaFill = 'active' | 'available' | 'passed' | 'disabled';
+export type AreaFill = 'active' | 'available' | 'passed' | 'disabled' | 'passed-available';
 
 export interface TilesetTile {
     x: number;
@@ -70,6 +69,10 @@ export interface AreaTilesetTiles {
 export interface AreaTileset {
     scale: number;
     areas: AreaTilesetTiles[]
+}
+
+export type AreaFills = {
+    [key in AreaKey]: AreaFill;
 }
 
 export type QualityPreset = 'low' | 'med' | 'max';

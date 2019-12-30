@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@inlet/react-pixi": "^1.1.11",
+    "@material-ui/styles": "^4.7.1",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
@@ -17,18 +18,22 @@
     "@types/react-svg-pan-zoom": "^3.3.0",
     "@types/react-virtualized": "^9.21.6",
     "canvg": "^3.0.2",
+    "classnames": "^2.2.6",
     "csv-parse": "^4.8.2",
     "d3": "^5.14.2",
     "fast-memoize": "^2.5.1",
+    "fitty": "^2.2.6",
     "pixi-particles": "^4.2.0",
     "pixi-viewport": "^4.4.1",
     "pixi.js": "latest",
     "polygon-centroid": "^1.1.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
+    "react-fittext": "^1.0.0",
     "react-hammerjs": "^1.0.1",
     "react-scripts": "3.3.0",
     "react-svg-pan-zoom": "^3.6.0",
+    "react-textfit": "^1.1.0",
     "react-touch-canvas": "^0.4.4",
     "react-virtualized": "^9.21.2",
     "svg-path-interpolator": "^0.2.5",
@@ -55,5 +60,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/classnames": "^2.2.9"
   }
 }

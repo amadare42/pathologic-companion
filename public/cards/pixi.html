@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pixi Playground</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.2.0/pixi.js"></script>
+</head>
+<body>
+<script>
+
+    function getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function delay(ms) {
+        return new Promise(r => setTimeout(r, ms));
+    }
+</script>
+
+<script>
+    // init
+    // const steppeTex = PIXI.Texture.from("areas_png/area01.png");
+
+    const app = new PIXI.Application({ backgroundColor: 0xffffff, width: 4000, height: 4000 });
+    const renderer = app.renderer;
+    document.body.appendChild(app.view);
+
+
+    // container
+    const container = new PIXI.Container();
+    app.stage.addChild(container);
+
+    const files = ['alexandr.jpg',
+        'andrei.jpg',
+        'kapella.jpg',
+        'maria.jpg',
+        'notkin.jpg',
+        'ospina.jpg',
+        'rubin.jpg',
+        'spichka.jpg',
+        'vlad.jpg'
+    ];
+    const cardWidth = 804;
+    const maxScale = 0.2;
+    const minScale = 0.03;
+    const sprites = files.map(f => PIXI.Sprite.from(f, {
+        // width: cardWidth,
+        // height: 1205
+    }));
+    console.log(sprites);
+    const deck = new PIXI.Container();
+    sprites.forEach((s, i) => {
+        s.scale.set(maxScale);
+        s.x = i * ((cardWidth * maxScale) + 10);
+        s.y = 200;
+        deck.addChild(s);
+    });
+    const totalWidth = files.length * ((cardWidth * maxScale) + 10);
+    container.interactive = true;
+    container.on('mousemove', (ev) => {
+        const point = ev.data.global;
+
+        // sprites.forEach((s, i) => {
+        //     const delta = Math.abs(
+        //         point.x - (i * ((cardWidth * maxScale) + 10) + (cardWidth * maxScale) / 2)
+        //     );
+        //     const relativeDelta = delta / totalWidth;
+        //     const scaleRange = maxScale - minScale;
+        //     const scale = minScale + (scaleRange * (1 - relativeDelta));
+        //     s.scale.set(scale);
+        //     // console.log(relativeDelta)
+        // });
+        let xPos = 0;
+        sprites.forEach((s, i) => {
+
+            const delta = Math.abs(
+                point.x - (i * ((cardWidth * maxScale) + 10) + (cardWidth * maxScale) / 2)
+            );
+            const relativeDelta = delta / totalWidth;
+            const scaleRange = maxScale - minScale;
+            const scale = minScale + (scaleRange * (1 - relativeDelta));
+            s.scale.set(scale);
+            const origX = i * ((cardWidth * maxScale) + 10);
+            s.x = origX * scale;
+            // xPos += s.x;
+            // console.log(relativeDelta)
+        });
+    });
+    container.addChild(deck);
+
+
+
+</script>
+</body>
+</html>

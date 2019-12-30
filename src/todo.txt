@@ -6,10 +6,53 @@
 + switching texture quality
 + text overlay
 
+- handle android navbar (onresize)
+- focus feature
+- menu!
+- character cards functionality
 - saving / restoring state
 - siege token should be on top of borders
-- start making ui already?
 - darker borders on inactive areas
 - fix camera clamping
 - more accurate overlay position
 - progressive texture quality ?
+
+
+Func:
+    OnLaunch
+        if (recorded game params)
+            PlayRecorded
+            + return to prev game button
+        elif (game state saved)
+            restore MainGame
+        else
+            start new game -> Onboarding
+
+    Onboarding
+        ask
+        if (skipped)
+            MainGame
+        steps to prepare board
+        go to MainGame
+
+    MainGame
+        - start new game
+        - play recorded game
+
+
+Components:
+    Dialog
+    Message
+    PlayersDoneButton
+    DoubleMovementTrigger
+
+GameStart:
+    1. Select area to begin
+        > Confirm screen [Dialog]
+        > Pass turn to healers [Message]
+        > Press when healers are done [PlayersDoneButton]
+        > (go to FirstMove)
+
+FirstMove:
+    1. Double movement trigger [DoubleMovementTrigger]
+    2. On wrong

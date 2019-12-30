@@ -42,6 +42,10 @@ export function getRandomInt(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+export function getRandomBool() {
+    return Math.random() > 0.5;
+}
+
 export const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export type RefPresentation = 'raw' | 'url' | 'idSelector';
@@ -74,11 +78,11 @@ export const refs = {
 };
 
 export const getConnectedAreas = (areaKey: AreaKey) => {
-    const areaNumber = areaNameToNumber(areaKey);
+    const areaNumber = areaToLocation(areaKey);
     return numberToConnectedAreas(areaNumber);
 };
 
-export const areaNameToNumber = (areaKey: AreaKey) => {
+export const areaToLocation = (areaKey: AreaKey) => {
     if (steppe.indexOf(areaKey) >= 0) return 0;
     return parseInt(areaKey.slice(-2));
 };
@@ -86,14 +90,14 @@ export const areaNameToNumber = (areaKey: AreaKey) => {
 export const numberToConnectedAreas = (index: number) => {
     const entry = connections.find(con => con.number === index);
     if (!entry) return [];
-    return entry.connections.map(i => numberToPolygonNames(i)).flat();
+    return entry.connections.map(i => locationToAreaKeys(i)).flat();
 };
 
-export const numberToPolygonNames = (index: number): AreaKey[] => {
-    if (index === 0) {
+export const locationToAreaKeys = (location: number): AreaKey[] => {
+    if (location === 0) {
         return steppe as AreaKey[];
     }
-    return [locationToAreaKey(index)];
+    return [locationToAreaKey(location)];
 };
 
 export const resolveOnCb = (cb: any) => new Promise(r => cb ? cb(r) : r());

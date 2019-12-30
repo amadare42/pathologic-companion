@@ -15,7 +15,34 @@ export const AREA_OVERLAY = new class {
 
 export const COLORS = {
     activeTint: 0x811000,
-    passedTint: 0x7D5B16
+    passedTint: 0x4A2319,
+
+    charTints: ['#021d3f', '#c26000', '#400000']
+
+};
+
+export const FONTS = {
+    main: 'Neucha',
+    mainSize: 66,
+    secondarySize: 30
+};
+
+export const SIZES = {
+    UI: {
+        topPanelHeightFactor: 0.17,
+        buttonPanelHeightFactor: 0.14,
+        panelPaddingPx: 20,
+
+        buttonScalePc: 7,
+        undoPaddingFactor: 0.04,
+
+        topTransitionHeightPx: 166,
+        bottomTransitionHeightPx: 205,
+        transitionElementWidthPx: 2000,
+    },
+
+    worldWidth: 9070,
+    worldHeight: 6200,
 };
 
 export const TOKENS = new class {

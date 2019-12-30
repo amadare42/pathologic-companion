@@ -1,13 +1,12 @@
 import React from 'react';
 import { AreaData, Resources } from '../loadResources';
 import { AreaKey } from '../../../data/areas';
-import { Container, Sprite, withPixiApp, Text } from '@inlet/react-pixi';
+import { Container, withPixiApp } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
 import { RawDisplayObj } from '../pixiUtils/rawDisplayObj';
 import AreaSpriteFill from './areaSpriteFiller';
 import { AreaFill, AreaTokenType } from '../../../model';
 import { AreaOverlay } from './areaOverlay';
-import { COLORS } from '../animationConstants';
 import { SiegeToken } from '../tokens/siegeToken';
 import PassedToken from '../tokens/passedToken';
 
@@ -36,7 +35,7 @@ class AreaView extends React.Component<Props> {
         const { bbox } = area;
 
         return <Container { ...bbox }>
-            <AreaOverlay area={ area } visible={ fill === 'disabled' } app={ this.props.app }/>
+            <AreaOverlay area={ area } visible={ fill === 'disabled' || fill === 'passed' } app={ this.props.app }/>
             <Container mask={ this.maskSprite } name={ 'area_sprite_container_' + area.key }>
                 <RawDisplayObj obj={ this.maskSprite }/>
                 <AreaSpriteFill fill={ fill }
@@ -46,12 +45,14 @@ class AreaView extends React.Component<Props> {
                 />
             </Container>
             { this.renderToken() }
-            { fill === 'active' ? <SiegeToken area={area} resources={resources} app={this.props.app} /> : null }
         </Container>
     };
 
     private renderToken = () => {
-        return this.props.tokens.length ? <PassedToken area={this.props.area} visible={true} /> : null;
+        const { area, resources } = this.props;
+        if (this.props.tokens.some(t => t == 'siege')) {
+            return <SiegeToken area={area} resources={resources} app={this.props.app} />
+        }
     };
 
     private getSizeMult(key: AreaKey) {

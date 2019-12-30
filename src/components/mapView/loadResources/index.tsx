@@ -1,6 +1,7 @@
-import React, { createContext, ReactNode, useContext } from 'react';
+import React, { ReactNode } from 'react';
 import { QualityPreset } from '../../../model';
 import { loadResources, Resources } from './loaders';
+import { withPixiApp } from '@inlet/react-pixi';
 
 export * from './loaders';
 export * from './context';
@@ -13,9 +14,10 @@ interface Props {
     children: (resources: Resources | null) => ReactNode;
     onLoaded: (resources: Resources) => void;
     qualityPreset: QualityPreset;
+    app: PIXI.Application;
 }
 
-export class LoadResources extends React.Component<Props, State> {
+class LoadResources extends React.Component<Props, State> {
 
     state: State = { resources: null };
 
@@ -25,7 +27,7 @@ export class LoadResources extends React.Component<Props, State> {
     }
 
     load = (q: QualityPreset) => {
-        loadResources(q)
+        loadResources(this.props.app, q)
             .then(resources => {
                 this.setState({ resources });
                 this.props.onLoaded(resources)
@@ -36,3 +38,5 @@ export class LoadResources extends React.Component<Props, State> {
         return this.props.children(this.state.resources);
     }
 }
+
+export default withPixiApp(LoadResources);

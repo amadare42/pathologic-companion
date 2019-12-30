@@ -69,7 +69,7 @@ class AreaSpriteFill extends React.Component<Props, any> {
             },
             noRotation: false,
             lifetime: {
-                min: baseLifetime - ttlMod,
+                min: baseLifetime,
                 max: baseLifetime + ttlMod
             },
             spawnType: 'rect',
@@ -106,6 +106,7 @@ class AreaSpriteFill extends React.Component<Props, any> {
                 break;
 
             case 'passed':
+            case 'passed-available':
                 this.goToPassed();
                 break;
 
@@ -115,10 +116,15 @@ class AreaSpriteFill extends React.Component<Props, any> {
         }
     };
 
+    goToPassed = () => {
+        this.rect.tint = COLORS.passedTint;
+        this.rect.alpha = 1;
+    };
+
     goToDisabled = () => {
         this.rect.alpha = 0;
         this.emitter.emit = false;
-        this.fadingMod = 0;
+        this.fadingMod = -1;
     };
 
     goToActive = () => {
@@ -126,17 +132,6 @@ class AreaSpriteFill extends React.Component<Props, any> {
         this.ticker.start();
         this.emitter.emit = true;
         this.fadingMod = 1;
-    };
-
-    goToPassed = () => {
-        this.ticker.start();
-        const freq = this.emitter.frequency;
-        this.emitter.frequency = 0.001;
-        this.emitter.update(0.001 * AREA.particlesCount * this.props.sizeMult);
-        this.rect.alpha = 0.3;
-        this.emitter.frequency = freq;
-        this.emitter.emit = false;
-        this.fadingMod = -1;
     };
 
     rafTick = (ts: RafTimestamp) => {
@@ -158,7 +153,7 @@ class AreaSpriteFill extends React.Component<Props, any> {
             if (this.rect.alpha < 0) {
                 this.rect.alpha = 0;
             }
-            if (this.rect.alpha === 1 && this.fadingMod >= 0) {
+            if (this.rect.alpha === 1 && this.fadingMod >= 0 && this.emitter.particleCount === 0) {
                 this.ticker.stop();
             }
         }
