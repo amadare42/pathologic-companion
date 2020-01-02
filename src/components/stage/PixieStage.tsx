@@ -28,7 +28,6 @@ class PixieStage extends React.Component<Props, State> {
     render = () => {
         const { qualityPreset, children, size, pageSizes } = this.props;
 
-
         return <div style={ {
             height: size.height,
             width: size.width,
@@ -38,7 +37,7 @@ class PixieStage extends React.Component<Props, State> {
             backgroundColor: 'black'
         } }>
             { this.renderLoader() }
-            <Stage width={ size.width } height={ size.height }>
+            <Stage width={ size.width } height={ size.height } options={{ transparent: true }} onUnmount={() => console.log('stage is killed')}>
                 <LoadResources onLoaded={ this.onResourcesLoaded } qualityPreset={ qualityPreset }>
                     { (resources) => {
                         if (!resources) return null;
@@ -56,7 +55,7 @@ class PixieStage extends React.Component<Props, State> {
         const { resources } = this.state;
 
         if (!resources)
-            return <ApplicationLoading/>;
+            return <ApplicationLoading />;
 
         return null;
     };

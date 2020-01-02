@@ -6,6 +6,7 @@ import { Character, characters } from '../../../data/characters';
 import { ReactComponent as Icon } from '../../../images/hand_white.svg';
 import { calcCss } from '../../../utils/sizeCss';
 import { PageSizes } from '../../theme/createTheme';
+import ReactHammer from 'react-hammerjs';
 
 interface Props extends WithStyles<typeof styles> {
     isVisible: boolean;
@@ -44,33 +45,51 @@ class SelectCloseOneModal extends Component<Props, State> {
         const { classes, modalSizes } = this.props;
         const { pageSelected, characterSelected } = this.state;
 
-
         return <div>
             { this.renderOverlay() }
-            <div
-                className={ classNames(classes.wrapper, {
-                    [classes.visible]: this.props.isVisible,
-                    [classes.invisible]: !this.props.isVisible,
-                }) }
-                style={ {
-                    left: modalSizes.left,
-                    bottom: modalSizes.bottom,
-                    width: modalSizes.width,
-                    height: modalSizes.height
-                } }>
+            <ReactHammer onSwipe={this.onSwipe}>
+                <div
+                    className={ classNames(classes.wrapper, {
+                        [classes.visible]: this.props.isVisible
+                    }) }
+                    style={ {
+                        left: modalSizes.left,
+                        bottom: modalSizes.bottom,
+                        width: modalSizes.width,
+                        height: modalSizes.height
+                    } }>
 
-                <div className={ classes.titleRow }>
-                    { characterSelected ? characters.find(c => c.id === this.state.characterSelected)!.name : '' }
+                    <div className={ classes.titleRow }>
+                        { characterSelected ? characters.find(c => c.id === this.state.characterSelected)!.name : '' }
+                    </div>
+
+                    <div className={ classes.cardSelectionRow }>
+                        { this.renderCardsRow(pageSelected) }
+                    </div>
+
+                    { this.renderSliderIndicatorsRowsContainer() }
+
                 </div>
-
-                <div className={ classes.cardSelectionRow }>
-                    { this.renderCardsRow(pageSelected) }
-                </div>
-
-                { this.renderSliderIndicatorsRowsContainer() }
-
-            </div>
+            </ReactHammer>
         </div>
+    }
+
+    private onSwipe = (ev: HammerInput) => {
+        let page = this.state.pageSelected;
+        if (ev.velocityX > 0) {
+            page--;
+            if (page < 0) page = 2;
+        } else if (ev.velocityX < 0) {
+            page++;
+            if (page > 2) page = 0;
+        }
+        this.setPage(page);
+    };
+
+    componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
+        if (!this.props.isVisible && prevProps.isVisible && !!this.state.characterSelected) {
+            this.setState({ characterSelected: null })
+        }
     }
 
     renderOverlay = () => {
@@ -100,10 +119,10 @@ class SelectCloseOneModal extends Component<Props, State> {
         const { classes } = this.props;
         return <SliderIndicator key={ idx } className={ classNames(classes.sliderIndicator, { 'active': isActive }) }
                                 color={ COLORS.charTints[idx] } size={ size }
-                                onClick={ () => this.onSliderClick(idx) }/>
+                                onClick={ () => this.setPage(idx) }/>
     };
 
-    onSliderClick = (pageNo: number) => {
+    setPage = (pageNo: number) => {
         this.setState({
             characterSelected: null,
             pageSelected: pageNo
@@ -119,7 +138,7 @@ class SelectCloseOneModal extends Component<Props, State> {
     renderCard = (char: Character) => {
         const { classes } = this.props;
         return <div key={ char.id }>
-            <img className={ classNames(classes.card, `c${ char.closeFor }`, {
+            <img draggable={false} className={ classNames(classes.card, `c${ char.closeFor }`, {
                 active: char.id === this.state.characterSelected,
             }) } onClick={ () => this.onCardClick(char) } src={ `cards/${ char.id }.jpg` }/>
         </div>
@@ -150,19 +169,17 @@ const styles = createStyles({
     wrapper: {
         position: 'absolute',
         background: 'black',
+        opacity: 0,
+        transition: '0.3s linear all',
+        pointerEvents: 'none'
     },
     visible: {
         animationName: '$appear',
         animationDuration: '0.3s',
         animationDelay: '0.7s',
         animationFillMode: 'forwards',
-        opacity: 0
-    },
-    invisible: {
         opacity: 0,
-        pointerEvents: 'none',
-        animationName: '$disappear',
-        animationDuration: '0.4s',
+        pointerEvents: 'all'
     },
 
     titleRow: {

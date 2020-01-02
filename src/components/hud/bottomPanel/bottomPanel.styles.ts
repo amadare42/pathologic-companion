@@ -16,7 +16,7 @@ export const styles = (theme: Theme) => createStyles({
     },
     buttonsWrapper: {
         display: 'flex',
-        justifyContent: 'space-between',
+        justifyContent: 'space-around',
         paddingLeft: '10vw',
         paddingRight: '10vw'
     },

@@ -6,7 +6,8 @@ export const main = {
     siegeEndSuccessfully: ['Облогу закінчено'],
     siegeCancelledCauseMovement: ['Облогу скасовано через переміщення'],
     startOfTurn: ['Початок ходу'],
-    movementToLocation: ['Рух до {locationNo} «{location}»', ['locationNo', 'location']]
+    movementToLocation: ['Рух до {locationNo} «{location}»', ['locationNo', 'location']],
+    selectCharacter: ['Оберіть Наближених які були уражені']
 } as const;
 
 export type MainStrings = typeof main;

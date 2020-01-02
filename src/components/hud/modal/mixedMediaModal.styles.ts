@@ -1,7 +1,6 @@
-import { Theme } from '../../theme/createTheme';
 import { createStyles } from '@material-ui/styles';
 
-export const styles = (theme: Theme) => createStyles({
+export const styles = createStyles({
     wrapper: {
         // background: '#000000',
         position: 'absolute',

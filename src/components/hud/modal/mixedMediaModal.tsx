@@ -1,4 +1,4 @@
-import React, { Component, useContext } from 'react';
+import React, { Component } from 'react';
 import { withStyles, WithStyles } from '@material-ui/styles';
 import { styles } from './mixedMediaModal.styles';
 import { Character, characters } from '../../../data/characters';
@@ -7,11 +7,9 @@ import { PageSizes } from '../../theme/createTheme';
 import SelectCloseOneModal from './selectCloseOneModal';
 import { SIZES } from '../../mapView/animationConstants';
 import { calcCss } from '../../../utils/sizeCss';
-import { PixiComponent, Sprite, Container } from '@inlet/react-pixi';
-import { ResourcesContext, withResources } from '../../mapView/loadResources';
-import * as PIXI from 'pixi.js';
-import { Size } from '../../../model';
-import { RawDisplayObj } from '../../mapView/pixiUtils/rawDisplayObj';
+import CharacterOverlay from './characterOverlay';
+import { DisappearingCard } from './disapperingCard';
+import CharacterCard from './characterCard';
 
 export interface ModalRenderer {
     renderPixiBackdrop: () => React.ReactNode;
@@ -22,6 +20,7 @@ interface Props extends WithStyles<typeof styles> {
     isVisible: boolean;
     pageSizes: PageSizes;
     children: (modalState: ModalRenderer) => React.ReactNode;
+    onCharacterSelected?: (character: Character | null) => void;
 }
 
 const relativeSizes = {
@@ -50,17 +49,27 @@ function calculateSizes(pageSizes: PageSizes) {
     }
 }
 
-type Sizes = ReturnType<typeof calculateSizes>;
+export type ModalSizes = ReturnType<typeof calculateSizes>;
 
 interface State {
     selectedCharacter: Character | null;
+    modalDestroyed: boolean
 }
 
 class MixedMediaModal extends Component<Props, State> {
 
     state: State = {
-        selectedCharacter: null
+        selectedCharacter: null,
+        modalDestroyed: false
     };
+
+    componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
+        if (this.state.selectedCharacter && !this.props.isVisible) {
+            this.setState({
+                selectedCharacter: null
+            });
+        }
+    }
 
     render() {
         const sizes = calculateSizes(this.props.pageSizes);
@@ -70,17 +79,24 @@ class MixedMediaModal extends Component<Props, State> {
         })
     }
 
-    renderModal = (sizes: Sizes) => () => {
+    renderModal = (sizes: ModalSizes) => () => {
         return <SelectCloseOneModal modalSizes={ {
             bottom: sizes.bottom,
             height: sizes.height,
             left: sizes.left,
             width: sizes.width
         } } pageSizes={ this.props.pageSizes } isVisible={ this.props.isVisible }
-                                    onSelectedCharacterChanged={ (char) => this.setState({ selectedCharacter: char }) }/>;
+                                    onSelectedCharacterChanged={ this.onCharacterChanged }/>;
     };
 
-    renderBackdrop = (sizes: Sizes) => () => {
+    onCharacterChanged = (char: Character | null) => {
+        this.setState({ selectedCharacter: char });
+        if (this.props.onCharacterSelected) {
+            this.props.onCharacterSelected(char);
+        }
+    }
+
+    renderBackdrop = (sizes: ModalSizes) => () => {
         const { isVisible, pageSizes } = this.props;
 
         return <>
@@ -94,36 +110,12 @@ class MixedMediaModal extends Component<Props, State> {
         </>
     };
 
-    renderCharacterOverlay = (sizes: Sizes) => {
-        return <CharacterOverlay sizes={ sizes } pageSizes={this.props.pageSizes} selectedCharacter={ this.state.selectedCharacter }/>
+    renderCharacterOverlay = (sizes: ModalSizes) => {
+        return <CharacterCard selectedCharacter={this.state.selectedCharacter}
+                              sizes={sizes}
+                              pageSizes={this.props.pageSizes}
+                              isVisible={this.props.isVisible} />;
     }
-}
-
-export function CharacterOverlay(props: { sizes: Sizes, pageSizes: PageSizes, selectedCharacter: Character | null }) {
-    const resources = useContext(ResourcesContext);
-    const { sizes, pageSizes } = props;
-    if (!resources || !props.selectedCharacter) return null;
-
-    const baseTex = resources?.characterCards[props.selectedCharacter?.id];
-
-    const scrFullHeight = (sizes.width / baseTex.width) * baseTex.height;
-    const scrShift = scrFullHeight * 0.1;
-    const scrShiftedHeight = scrFullHeight - scrShift;
-    const scrAvailableSpace = pageSizes.middle - sizes.pixiTop;
-    const scrRequiredHeight = scrAvailableSpace > scrShiftedHeight
-        ? scrFullHeight
-        : scrAvailableSpace;
-
-    const texHeight = (scrRequiredHeight / scrFullHeight) * baseTex.height;
-
-    return <Sprite
-        texture={ new PIXI.Texture(baseTex, new PIXI.Rectangle(0, 0, baseTex.width, texHeight)) }
-        width={ sizes.width }
-        height={ scrRequiredHeight }
-        alpha={ 0.8 }
-        x={ sizes.left }
-        y={ -scrShift }
-    />
 }
 
 export default withStyles(styles)(

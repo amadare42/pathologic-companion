@@ -1,20 +1,29 @@
 import React from 'react';
 import { Container, Sprite } from '@inlet/react-pixi';
-import { MapSnapshot, Point, QualityPreset } from '../../model';
+import { AreaFills, MapSnapshot, Point, QualityPreset } from '../../model';
 import { Resources, WithResources, withResources } from './loadResources';
 import AreaView from './area/areaView';
-import { AreaKey } from '../../data/areas';
+import { AreaKey, areaKeys } from '../../data/areas';
 import ViewPort from './viewport';
 import { ClickEventData } from 'pixi-viewport';
 import { MapBackground } from './mapBackground';
 import { WithSize } from '../stage/autoSizeContext';
 
 interface Props extends WithSize, WithResources {
-    mapSnapshot: MapSnapshot;
-    onAreaClick: (key: AreaKey) => void,
+    mapSnapshot?: MapSnapshot;
+    onAreaClick?: (key: AreaKey) => void,
 }
 
+const emptySnapshot = {
+    tokens: [],
+    fills: Object.fromEntries(areaKeys.map(key => ([key, 'disabled']))) as AreaFills
+} as MapSnapshot;
+
 class MapView extends React.Component<Props> {
+
+    componentWillUnmount(): void {
+        console.log('map unmount')
+    }
 
     render = () => {
         const { resources, size: { width, height } } = this.props;
@@ -32,7 +41,7 @@ class MapView extends React.Component<Props> {
     };
 
     renderAreas = (resources: Resources) => {
-        const { fills, tokens } = this.props.mapSnapshot;
+        const { fills, tokens } = this.props.mapSnapshot || emptySnapshot;
         return resources.areas.map(area =>
             <AreaView resources={ resources }
                       area={ area }
@@ -52,7 +61,7 @@ class MapView extends React.Component<Props> {
         if (!area) {
             return;
         }
-        this.props.onAreaClick(area);
+        this.props.onAreaClick?.(area);
     };
 
     private traceArea = (point: Point) => {

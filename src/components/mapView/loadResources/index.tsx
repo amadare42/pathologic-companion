@@ -17,18 +17,27 @@ interface Props {
     app: PIXI.Application;
 }
 
+let cachedResources: Resources | null = null;
+
 class LoadResources extends React.Component<Props, State> {
 
-    state: State = { resources: null };
+    state: State = {
+        resources: cachedResources
+    };
 
     componentDidMount(): void {
-        this.load(this.props.qualityPreset);
+        if (!this.state.resources) {
+            this.load(this.props.qualityPreset);
+        } else {
+            this.props.onLoaded(this.state.resources);
+        }
         (window as any)['setQ'] = this.load;
     }
 
     load = (q: QualityPreset) => {
         loadResources(this.props.app, q)
             .then(resources => {
+                cachedResources = resources;
                 this.setState({ resources });
                 this.props.onLoaded(resources)
             });

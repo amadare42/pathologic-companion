@@ -55,7 +55,7 @@ class ModalBackground extends Component<Props> {
         if (nextProps.isVisible && !this.props.isVisible) {
             this.start();
         }
-        if (nextProps.rect.x !== this.props.rect.x) {
+        if (nextProps.isVisible && nextProps.rect.x !== this.props.rect.x) {
             this.start();
         }
         return false;
