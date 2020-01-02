@@ -38,15 +38,23 @@ export const DisappearingCard = withPixiApp(withResources(PixiComponent<Props, a
         const targetAnchorX = 0.3;
         const targetAnchorY = 0.4;
 
-        const targetScale = scale * 0.5;
+        const targetScale = scale * 0.7;
         const targetPos = {
             x: (props.viewport.width - (tex.width * targetScale)) / 2,
-            y: (props.viewport.height - (tex.height * targetScale)) / 2,
+            y: (props.viewport.height - (tex.height * targetScale)),
         };
 
         let last = 0;
 
         const container = new PIXI.Container();
+        const tl = new gsap.TimelineMax({ paused: true })
+            .add(new gsap.TimelineMax()
+                .to(container, 1,{ x: targetPos.x, y: targetPos.y })
+                .to(container.scale, 1, { x: targetScale, y: targetScale }, '-=1')
+                // .to(displacementSprite.anchor, 1, { x: targetAnchorX, y: targetAnchorY }, '-=2')
+                .to(filter.scale, 1, { x: target, y: target }, '-=1')
+        );
+        // tl.play();
 
         function animate(ms: number) {
             if (last == 0) {

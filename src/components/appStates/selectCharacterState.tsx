@@ -1,37 +1,40 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { Character } from '../../data/characters';
-import { MapSnapshot } from '../../model';
-import UiScreen, { UiProps } from '../hud/uiScreen';
+import { UiProps } from '../hud/uiScreen';
 import { strings } from '../locale/strings';
 import Button from '../hud/button/button';
+import { RouteProps, BaseAppState } from './appState';
+
+interface State {
+    character: Character | null;
+}
 
 interface Props {
     onCharacterSelected: (character: Character) => void;
-    mapSnapshot: () => MapSnapshot;
-    popState: () => void;
-    renderUi: (props: UiProps) => void;
 }
 
-export function SelectCharacterState(props: Props) {
-    let character: Character | null = null;
-    void function() {
-        props.renderUi({
+export class SelectCharacterState extends BaseAppState<State> {
+
+    constructor(routeProps: RouteProps, private props: Props) {
+        super(routeProps, {
+            character: null
+        });
+    }
+
+    renderProps = (): UiProps => {
+        const { character } = this.state;
+        return {
             msg: strings.selectCharacter(),
-            mapSnapshot: props.mapSnapshot(),
-            onCharacterSelected: (c) => {
-                character = c;
+            undoVisible: true,
+            isModalVisible: true,
+            onCharacterSelected: (character) => {
+                this.setState({ character })
             },
             bottomButtons: () => {
                 return <Button iconHref={ 'icons/contaminate_button.png' } isVisible={ !!character }
-                               onClick={ () => {
-                                   props.onCharacterSelected(character!)
-                               } }/>;
+                               onClick={ () => this.props.onCharacterSelected(character!) }/>;
             },
-            onUndo: props.popState,
-            isModalVisible: true,
-            undoVisible: true
-        });
-    }();
-    return null;
+            onUndo: () => this.stateman.popState()
+        }
+    }
 }
-

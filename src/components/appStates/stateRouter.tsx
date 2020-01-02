@@ -1,94 +1,54 @@
 import React, { Component } from 'react';
-import PlagueTurnState from './plagueTurnState';
 import UiScreen, { UiProps } from '../hud/uiScreen';
 import { areaKeys } from '../../data/areas';
-import { AreaFill, AreaFills } from '../../model';
-
-interface Props {
-
-}
-
-type AppState = (props: UiAppStateProps) => React.ReactNode;
+import { AreaFills } from '../../model';
+import { AppState } from './appState';
+import { PlagueTurnState } from './plagueTurnState';
 
 interface State {
     appStates: AppState[];
-    uiProps: UiProps;
 }
 
-export interface UiAppStateProps {
-    isActive: boolean;
-    setUiProps: (props: UiProps) => void;
-    pushState: (appState: AppState) => void;
-    popState: () => void;
-}
+const defaultUiProps: UiProps = {
+    undoVisible: false,
+    mapSnapshot: {
+        tokens: [],
+        fills: Object.fromEntries(areaKeys.map(key => ([key, 'disabled']))) as AreaFills
+    }
+};
 
-const UiPropsContext = React.createContext<UiProps>({});
-
-class StateRouter extends Component<Props, State> {
+class StateRouter extends Component<{}, State> {
 
     state: State = {
-        appStates: [],
-        uiProps: {
-            undoVisible: false,
-            mapSnapshot: {
-                tokens: [],
-                fills: Object.fromEntries(areaKeys.map(key => ([key, 'disabled']))) as AreaFills
-            }
-        }
+        appStates: []
     };
 
+    constructor(props: any) {
+        super(props);
+
+        this.state.appStates = [new PlagueTurnState(this.getRouteProps())];
+    }
+
+    getRouteProps = () => ({
+        pushState: this.pushState,
+        popState: this.popState,
+        update: this.update
+    });
+
+    pushState = (appState: AppState) => this.setState({ appStates: [...this.state.appStates, appState] });
+
+    popState = () => {
+        this.state.appStates.splice(-1, 1);
+        this.setState({ appStates: [...this.state.appStates] })
+    };
+
+    update = () => this.forceUpdate();
+
+
     render() {
-        return <UiRenderer>
-            { (set: any) => {
-                return <PlagueTurnState renderUi={set} />
-            }}
-        </UiRenderer>
+        const uiProps = Object.assign({}, defaultUiProps, ...this.state.appStates.map(s => s.renderProps()));
+        return <UiScreen { ...uiProps } />
     }
-}
-
-function deepEqual(a: any, b: any)
-{
-    if ((typeof a === typeof b) && (typeof a === 'function')) {
-        return true;
-    }
-    if( (typeof a == 'object' && a != null) &&
-        (typeof b == 'object' && b != null) )
-    {
-        var count = [0,0];
-        for( var key in a) count[0]++;
-        for( var key in b) count[1]++;
-        if( count[0]-count[1] != 0) {return false;}
-        for( var key in a)
-        {
-            if(!(key in b) || !deepEqual(a[key],b[key])) {return false;}
-        }
-        for( var key in b)
-        {
-            if(!(key in a) || !deepEqual(b[key],a[key])) {return false;}
-        }
-        return true;
-    }
-    else
-    {
-        return a === b;
-    }
-}
-
-function UiRenderer(props: any) {
-    const [uip, setUip] = React.useState<UiProps>({});
-    function trySet(p: UiProps) {
-        if (deepEqual(uip, p)) {
-            return;
-        } else {
-            // console.log(p, uip);
-        }
-        setUip(p);
-    }
-
-    return <>
-        { props.children(trySet) }
-        <UiScreen {...uip} />
-    </>
 }
 
 export default StateRouter;

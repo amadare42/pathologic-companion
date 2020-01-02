@@ -1,4 +1,3 @@
-import React, { Component } from 'react';
 import UiScreen, { UiProps } from '../hud/uiScreen';
 import { strings } from '../locale/strings';
 import { AreaKey, steppe } from '../../data/areas';
@@ -6,9 +5,10 @@ import { areaToLocation, locationToAreaKey, locationToAreaKeys } from '../../uti
 import connections from '../../data/connections.json';
 import { AreaFill, AreaFills, AreaToken, MapSnapshot } from '../../model';
 import Button from '../hud/button/button';
-import { SelectCharacterState } from './selectCharacterState';
 import { Character } from '../../data/characters';
-import { UiAppStateProps } from './stateRouter';
+import { AppState, RouteProps, BaseAppState } from './appState';
+import React from 'react';
+import { SelectCharacterState } from './selectCharacterState';
 
 interface PlagueAction<Descriptor extends PlagueActionDescriptor = PlagueActionDescriptor> {
     descriptor: Descriptor;
@@ -37,10 +37,6 @@ interface GameState {
     turnActions: PlagueAction[];
 }
 
-interface Props {
-    renderUi: (props: UiProps) => void;
-}
-
 interface State {
     game: GameState;
     msg: string;
@@ -48,71 +44,31 @@ interface State {
     childState?: (() => React.ReactNode) | null;
 }
 
-class PlagueTurnState extends Component<Props, State> {
+export class PlagueTurnState extends BaseAppState<State> {
 
-    state: State = {
-        game: {
-            turnNo: 1,
-            turnActions: [],
-            doubleMovement: false,
-            inSiege: -1
-        },
-        initialLocation: 1,
-        msg: strings.startOfTurn()
+    constructor(routeProps: RouteProps) {
+        super(routeProps, {
+            game: {
+                turnNo: 1,
+                turnActions: [] ,
+                doubleMovement: false,
+                inSiege: -1
+            },
+            initialLocation: 1,
+            msg: strings.startOfTurn()
+        });
     }
 
-    // componentDidMount(): void {
-    //     this.props.setUiProps({
-    //         mainMsg: strings.turnNo({ turn: this.state.game.turnNo }),
-    //         mapSnapshot: this.getMapSnapshot(),
-    //         undoVisible: !!this.state.game.turnActions.length,
-    //         bottomButtons: this.renderButtons,
-    //         msg: this.state.msg,
-    //         onAreaClick: this.onAreaClick,
-    //         onUndo: this.onUndo
-    //     });
-    // }
-
-    // shouldComponentUpdate(nextProps: Readonly<Props>, nextState: Readonly<State>, nextContext: any): boolean {
-    //     if (this.state !== nextState) {
-    //         this.props.setUiProps({
-    //             mainMsg: strings.turnNo({ turn: this.state.game.turnNo }),
-    //             mapSnapshot: this.getMapSnapshot(),
-    //             undoVisible: !!this.state.game.turnActions.length,
-    //             bottomButtons: this.renderButtons,
-    //             msg: this.state.msg,
-    //             onAreaClick: this.onAreaClick,
-    //             onUndo: this.onUndo
-    //         });
-    //     }
-    //
-    //     return true;
-    // }
-
-    render() {
-        if (this.state.childState) {
-            return this.state.childState();
-        } else {
-            this.props.renderUi({
-                mainMsg: strings.turnNo({ turn: this.state.game.turnNo }),
-                mapSnapshot: this.getMapSnapshot(),
-                undoVisible: !!this.state.game.turnActions.length,
-                bottomButtons: this.renderButtons,
-                msg: this.state.msg,
-                onAreaClick: this.onAreaClick,
-                onUndo: this.onUndo
-            });
+    renderProps(): UiProps {
+        return {
+            mainMsg: strings.turnNo({ turn: this.state.game.turnNo }),
+            mapSnapshot: this.getMapSnapshot(),
+            undoVisible: !!this.state.game.turnActions.length,
+            bottomButtons: this.renderButtons,
+            msg: this.state.msg,
+            onAreaClick: this.onAreaClick,
+            onUndo: this.onUndo
         }
-        return null;
-        // return <UiScreen
-        //     mainMsg={strings.turnNo({ turn: this.state.game.turnNo })}
-        //     msg={this.state.msg}
-        //     onAreaClick={this.onAreaClick}
-        //     mapSnapshot={this.getMapSnapshot()}
-        //     bottomButtons={this.renderButtons}
-        //     onUndo={this.onUndo}
-        //     undoVisible={ !!this.state.game.turnActions.length }
-        // />;
     }
 
     private renderButtons = () => {
@@ -145,12 +101,9 @@ class PlagueTurnState extends Component<Props, State> {
     };
 
     private onContaminate = () => {
-        this.setState({
-            childState: () => <SelectCharacterState mapSnapshot={ this.getMapSnapshot }
-                                                    onCharacterSelected={ this.onContaminatedCharacterSelected }
-                                                    renderUi={ this.props.renderUi }
-                                                    popState={ this.popState }/>
-        })
+        this.stateman.pushState(new SelectCharacterState(this.stateman, {
+            onCharacterSelected: this.onContaminatedCharacterSelected
+        }))
     };
 
     private popState = () => this.setState({ childState: null });
@@ -205,7 +158,8 @@ class PlagueTurnState extends Component<Props, State> {
                     ...game,
                     inSiege: currentLocation,
                     turnActions: [...game.turnActions, this.createAction({ type: 'siege-start' })]
-                }
+                },
+                msg: strings.siegeStarted()
             })
         }
     };
@@ -345,7 +299,4 @@ class PlagueTurnState extends Component<Props, State> {
         }
         return 'disabled';
     };
-
 }
-
-export default PlagueTurnState;
