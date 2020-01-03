@@ -101,7 +101,7 @@ export class PlagueTurnState extends BaseAppState<State> {
     };
 
     private onContaminate = () => {
-        this.stateman.pushState(new SelectCharacterState(this.stateman, {
+        this.routeProps.pushState(new SelectCharacterState(this.routeProps, {
             onCharacterSelected: this.onContaminatedCharacterSelected
         }))
     };

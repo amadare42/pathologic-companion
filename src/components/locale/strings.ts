@@ -1,6 +1,5 @@
 import i18n from 'i18next';
 
-
 export const main = {
     turnNo: ['Хід {{turn}}', ['turn']],
     cannotEndSiegeOnSameTurn: ['Неможоливо закінчити облогу на тому ж ході, на якому вона почата!'],
@@ -9,8 +8,8 @@ export const main = {
     siegeEndSuccessfully: ['Облогу закінчено'],
     siegeCancelledCauseMovement: ['Облогу скасовано через переміщення'],
     startOfTurn: ['Початок ходу'],
-    movementToLocation: ['Рух до {{locationNo}} «{{location}}»', ['locationNo', 'location']],
-    selectCharacter: ['Оберіть Наближених які були уражені'],
+    movementToLocation: ['Рух до {{locationNo, if-not:[0]}}«{{location}}»', ['locationNo', 'location']],
+    selectCharacter: ['Оберіть Наближених, які були уражені'],
     siegeStarted: ['Початок облоги'],
 } as const;
 
@@ -22,6 +21,24 @@ for (let key of Object.keys(main)) {
 i18n.init({
     lng: 'ua',
     debug: true,
+    interpolation: {
+        format: (value, format, lng) => {
+            if (format && format.startsWith('if-not:')) {
+                const values = JSON.parse(format.substring(7)) as any[];
+                if (value instanceof Array) {
+                    if (values.some(v => v.toString() === value.toString())) {
+                        return '';
+                    }
+                    return value + ' ';
+                } else if (value.toString() === values.toString()) {
+                    return '';
+                } else {
+                    return value + ' ';
+                }
+            }
+            return value;
+        }
+    },
     resources: {
         ua: {
             translation: trans
@@ -54,28 +71,13 @@ export type Strings = {
             : (...args: any[]) => string;
 }
 
-function format(value: string, args: any) {
-    // debugger;
-    return value;
-    // return i18n.__(value, args);
-    // if (!args) {
-    //     return value;
-    // }
-    // let s = value;
-    // for (let key of Object.keys(args)) {
-    //     s = s.replace(new RegExp(`{${key}}`, 'g'), args[key]);
-    // }
-    // return s;
-}
-
 const format18n = (key: string) => (args: any) => {
     return i18n.t(key, args);
-}
+};
 
 function getStrings(): Strings {
     let obj: any = {};
     for (const key of Object.keys(main)) {
-        // obj[key] = (args?: any) => format((main as any)[key][0], args);
         obj[key] = format18n(key);
     }
     return obj;

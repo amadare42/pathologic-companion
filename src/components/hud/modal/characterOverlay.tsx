@@ -18,6 +18,7 @@ interface Props {
 
 class CharacterOverlay extends Component<Props> {
 
+
     render() {
         const { sizes, pageSizes, resources } = this.props;
         if (!resources || !this.props.selectedCharacter) return null;

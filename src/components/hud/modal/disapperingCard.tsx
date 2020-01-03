@@ -1,7 +1,6 @@
 import { PixiComponent, withPixiApp } from '@inlet/react-pixi';
 import { Resources, withResources } from '../../mapView/loadResources';
 import { Character } from '../../../data/characters';
-import * as ease from 'js-easing-functions';
 import { Rectangle } from '../../../model';
 import * as gsap from 'gsap';
 
@@ -16,7 +15,6 @@ interface Props {
 
 export const DisappearingCard = withPixiApp(withResources(PixiComponent<Props, any>('DisappearingCard', {
     create(props) {
-
         const tex = new PIXI.Texture(props.resources.characterCards[props.character.id]);
         const scale = props.position.width / tex.width;
         const maskSprt = PIXI.Sprite.from('cards/card_mask.png');
@@ -34,57 +32,44 @@ export const DisappearingCard = withPixiApp(withResources(PixiComponent<Props, a
         filter.padding = 500;
 
         const target = -3000;
-        const time = 2000;
-        const targetAnchorX = 0.3;
+        const targetAnchorX = 0.1;
         const targetAnchorY = 0.4;
 
-        const targetScale = scale * 0.7;
+        const targetScale = props.viewport.height / tex.height * 1.5;
+
         const targetPos = {
-            x: (props.viewport.width - (tex.width * targetScale)) / 2,
-            y: (props.viewport.height - (tex.height * targetScale)),
+            x: (props.viewport.width - (tex.width * targetScale * scale)) / 2,
+            y: (props.viewport.height - (tex.height * targetScale * scale)) / 2,
         };
 
-        let last = 0;
-
         const container = new PIXI.Container();
-        const tl = new gsap.TimelineMax({ paused: true })
-            .add(new gsap.TimelineMax()
-                .to(container, 1,{ x: targetPos.x, y: targetPos.y })
-                .to(container.scale, 1, { x: targetScale, y: targetScale }, '-=1')
-                // .to(displacementSprite.anchor, 1, { x: targetAnchorX, y: targetAnchorY }, '-=2')
-                .to(filter.scale, 1, { x: target, y: target }, '-=1')
-        );
-        // tl.play();
 
-        function animate(ms: number) {
-            if (last == 0) {
-                last = ms;
-                requestAnimationFrame(animate);
-                return;
-            }
-            const progress = ms - last;
-            const scale = ease.easeInQuint(progress, 1, target, time);
-            if (scale > target) {
-                filter.scale.set(scale, scale);
-            }
+        const times = {
+            appear: 0.2,
+            scale: 0.6
+        };
 
-            const anchor = (targetAnchorX / time) * progress;
-            const anchorY = (targetAnchorY / time) * progress;
-            displacementSprite.anchor.set(anchor, anchorY);
+        const appearTl = new gsap.TimelineLite()
+            .to(container, times.appear, { alpha: 1})
+        ;
 
-            // container.x = ease.easeInQuint(progress, props.position.x, targetPos.x - props.position.x, time);
-            // container.y = ease.easeInQuint(progress, props.position.y, targetPos.y - props.position.y, time);
-            // const containerScale = 1 - ease.easeInQuint(progress, 0, 0.5, time);
-            // container.scale.set(containerScale, containerScale);
+        const positionTl = new gsap.TimelineLite()
+            .to(container.position, times.scale,{ x: targetPos.x, y: targetPos.y })
+            .to(container.scale, times.scale, { x: targetScale, y: targetScale }, `-=${times.scale}`)
+        ;
 
-            sprite.alpha = 1 - ease.easeInQuint(progress, 0, 1, time);
-            if (scale < target) {
-                props.onAnimationEnd();
-                return;
-            }
-            requestAnimationFrame(animate)
-        }
-        requestAnimationFrame(animate);
+        const disTl = new gsap.TimelineLite()
+            .to(displacementSprite.anchor, 1, { x: targetAnchorX * targetScale, y: targetAnchorY * targetScale })
+            .to(filter.scale, 1, { x: target, y: target, ease: gsap.Expo.easeIn }, '-=1')
+            .to(container, 1, { alpha: 0, ease: gsap.Power4.easeIn }, '-=1')
+        ;
+
+        const masterTl = new gsap.TimelineLite()
+            // .add(appearTl)
+            .add(positionTl, "+=0.3")
+            .add(disTl)
+        ;
+        masterTl.play();
 
         sprite.filters = [filter];
 

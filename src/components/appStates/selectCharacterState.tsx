@@ -34,7 +34,7 @@ export class SelectCharacterState extends BaseAppState<State> {
                 return <Button iconHref={ 'icons/contaminate_button.png' } isVisible={ !!character }
                                onClick={ () => this.props.onCharacterSelected(character!) }/>;
             },
-            onUndo: () => this.stateman.popState()
+            onUndo: () => this.routeProps.popState()
         }
     }
 }

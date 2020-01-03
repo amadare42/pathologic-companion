@@ -1,14 +1,12 @@
 import React, { Component } from 'react';
 import { withStyles, WithStyles } from '@material-ui/styles';
 import { styles } from './mixedMediaModal.styles';
-import { Character, characters } from '../../../data/characters';
+import { Character } from '../../../data/characters';
 import ModalBackground from './modalBackground';
 import { PageSizes } from '../../theme/createTheme';
 import SelectCloseOneModal from './selectCloseOneModal';
 import { SIZES } from '../../mapView/animationConstants';
 import { calcCss } from '../../../utils/sizeCss';
-import CharacterOverlay from './characterOverlay';
-import { DisappearingCard } from './disapperingCard';
 import CharacterCard from './characterCard';
 
 export interface ModalRenderer {
@@ -53,18 +51,27 @@ export type ModalSizes = ReturnType<typeof calculateSizes>;
 
 interface State {
     selectedCharacter: Character | null;
-    modalDestroyed: boolean
+    backdropShown: boolean;
 }
 
 class MixedMediaModal extends Component<Props, State> {
 
     state: State = {
         selectedCharacter: null,
-        modalDestroyed: false
+        backdropShown: false
     };
 
     componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
-        if (this.state.selectedCharacter && !this.props.isVisible) {
+        // invisible -> visible
+        if (this.props.isVisible && !prevProps.isVisible) {
+            this.setState({
+                backdropShown: true,
+                selectedCharacter: null
+            })
+        }
+
+        // visible -> invisible
+        if (!this.props.isVisible && prevProps.isVisible) {
             this.setState({
                 selectedCharacter: null
             });
@@ -94,7 +101,7 @@ class MixedMediaModal extends Component<Props, State> {
         if (this.props.onCharacterSelected) {
             this.props.onCharacterSelected(char);
         }
-    }
+    };
 
     renderBackdrop = (sizes: ModalSizes) => () => {
         const { isVisible, pageSizes } = this.props;
@@ -114,6 +121,7 @@ class MixedMediaModal extends Component<Props, State> {
         return <CharacterCard selectedCharacter={this.state.selectedCharacter}
                               sizes={sizes}
                               pageSizes={this.props.pageSizes}
+                              onAnimationsDone={() => this.setState({ backdropShown: false })}
                               isVisible={this.props.isVisible} />;
     }
 }

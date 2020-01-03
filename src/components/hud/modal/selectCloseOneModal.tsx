@@ -7,6 +7,8 @@ import { ReactComponent as Icon } from '../../../images/hand_white.svg';
 import { calcCss } from '../../../utils/sizeCss';
 import { PageSizes } from '../../theme/createTheme';
 import ReactHammer from 'react-hammerjs';
+import * as gsap from 'gsap';
+import CssGradientOverlay from './cssGradientOverlay';
 
 interface Props extends WithStyles<typeof styles> {
     isVisible: boolean;
@@ -95,12 +97,14 @@ class SelectCloseOneModal extends Component<Props, State> {
     renderOverlay = () => {
         const { classes, pageSizes, isVisible } = this.props;
 
-        return <div className={ classes.overlay } style={ {
-            top: pageSizes.top,
-            width: '100%',
-            height: '100%',
-            display: isVisible ? 'block' : 'none'
-        } }/>;
+        return <CssGradientOverlay isVisible={isVisible} pageSizes={pageSizes} />
+
+        // return <div className={ classes.overlay } style={ {
+        //     top: pageSizes.top,
+        //     width: '100%',
+        //     height: '100%',
+        //     display: isVisible ? 'block' : 'none'
+        // } }/>;
     };
 
     renderSliderIndicatorsRowsContainer = () => {

@@ -4,13 +4,14 @@ import { PageSizes } from '../../theme/createTheme';
 import { ModalSizes } from './mixedMediaModal';
 import { DisappearingCard } from './disapperingCard';
 import CharacterOverlay from './characterOverlay';
-import { Point, Rectangle } from '../../../model';
+import { Rectangle } from '../../../model';
 
 interface Props {
     isVisible: boolean;
     selectedCharacter: Character | null;
     pageSizes: PageSizes;
     sizes: ModalSizes;
+    onAnimationsDone: () => void;
 }
 
 interface State {
@@ -53,7 +54,6 @@ class CharacterCard extends Component<Props, State> {
                                      onAnimationEnd={ this.onDisappearEnd }/>
         }
 
-        console.log('null', this);
         return null;
     }
 
@@ -61,6 +61,7 @@ class CharacterCard extends Component<Props, State> {
 
     onDisappearEnd = () => {
         this.setState({ disappearingCharacter: null });
+        this.props.onAnimationsDone();
     }
 }
 
