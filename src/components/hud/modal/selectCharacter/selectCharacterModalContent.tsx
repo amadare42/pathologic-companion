@@ -1,17 +1,19 @@
 import React, { Component } from 'react';
 import { createStyles, WithStyles, withStyles } from '@material-ui/styles';
 import classNames from 'classnames';
-import { COLORS } from '../../mapView/animationConstants';
-import { Character, characters } from '../../../data/characters';
-import { ReactComponent as Icon } from '../../../images/hand_white.svg';
-import { calcCss } from '../../../utils/sizeCss';
-import { PageSizes } from '../../theme/createTheme';
+import { COLORS } from '../../../mapView/animationConstants';
+import { Character, characters } from '../../../../data/characters';
+import { ReactComponent as Icon } from '../../../../images/hand_white.svg';
+import { calcCss } from '../../../../utils/sizeCss';
+import { PageSizes } from '../../../theme/createTheme';
 import ReactHammer from 'react-hammerjs';
 import * as gsap from 'gsap';
-import CssGradientOverlay from './cssGradientOverlay';
+import { timings } from './timings';
+import { ModalMode } from './controller';
+
 
 interface Props extends WithStyles<typeof styles> {
-    isVisible: boolean;
+    mode: ModalMode;
     modalSizes: {
         width: number;
         height: number;
@@ -27,7 +29,7 @@ interface State {
     characterSelected?: string | null;
 }
 
-class SelectCloseOneModal extends Component<Props, State> {
+class SelectCharacterModalContent extends Component<Props, State> {
 
     state: State = {
         pageSelected: 0,
@@ -46,13 +48,14 @@ class SelectCloseOneModal extends Component<Props, State> {
     render() {
         const { classes, modalSizes } = this.props;
         const { pageSelected, characterSelected } = this.state;
+        const isVisible = this.props.mode == 'visible';
 
         return <div>
             { this.renderOverlay() }
-            <ReactHammer onSwipe={this.onSwipe}>
+            <ReactHammer onSwipe={ this.onSwipe }>
                 <div
                     className={ classNames(classes.wrapper, {
-                        [classes.visible]: this.props.isVisible
+                        [classes.visible]: isVisible
                     }) }
                     style={ {
                         left: modalSizes.left,
@@ -88,23 +91,16 @@ class SelectCloseOneModal extends Component<Props, State> {
         this.setPage(page);
     };
 
-    componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
-        if (!this.props.isVisible && prevProps.isVisible && !!this.state.characterSelected) {
-            this.setState({ characterSelected: null })
-        }
-    }
-
     renderOverlay = () => {
-        const { classes, pageSizes, isVisible } = this.props;
+        const { classes, pageSizes, mode } = this.props;
 
-        return <CssGradientOverlay isVisible={isVisible} pageSizes={pageSizes} />
-
-        // return <div className={ classes.overlay } style={ {
-        //     top: pageSizes.top,
-        //     width: '100%',
-        //     height: '100%',
-        //     display: isVisible ? 'block' : 'none'
-        // } }/>;
+        return <div className={ classNames(classes.overlay, {
+            visible: mode == 'visible',
+            kill: mode == 'killed-and-hidden',
+            hidden: mode == 'hidden'
+        }) } style={ {
+            top: pageSizes.top,
+        } }/>;
     };
 
     renderSliderIndicatorsRowsContainer = () => {
@@ -142,7 +138,7 @@ class SelectCloseOneModal extends Component<Props, State> {
     renderCard = (char: Character) => {
         const { classes } = this.props;
         return <div key={ char.id }>
-            <img draggable={false} className={ classNames(classes.card, `c${ char.closeFor }`, {
+            <img draggable={ false } className={ classNames(classes.card, `c${ char.closeFor }`, {
                 active: char.id === this.state.characterSelected,
             }) } onClick={ () => this.onCardClick(char) } src={ `cards/${ char.id }.jpg` }/>
         </div>
@@ -239,13 +235,26 @@ const styles = createStyles({
 
     overlay: {
         position: 'absolute',
+        width: '100%',
+        height: '100%',
         opacity: 0,
-        animationName: '$appear',
-        animationDuration: '0.3s',
-        animationDelay: '0.7s',
         animationFillMode: 'forwards',
-        background: 'linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,1) 100%)'
+        background: 'linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,1) 100%)',
+        '&.visible': {
+            animationName: '$appear',
+            animationDelay: '0.7s',
+            animationDuration: '0.3s',
+        },
+        '&.kill': {
+            animationName: '$disappear',
+            animationDelay: '0.7s',
+            animationDuration: `${ timings.destructionTotal - 0.7 }s`
+        },
+        '&.hidden': {
+            animationName: '$disappear',
+            animationDuration: '0.3s',
+        }
     }
 });
 
-export default withStyles(styles)(SelectCloseOneModal);
+export default withStyles(styles)(SelectCharacterModalContent);

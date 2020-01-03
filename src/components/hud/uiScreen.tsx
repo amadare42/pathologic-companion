@@ -9,6 +9,7 @@ import BottomPanel from './bottomPanel/bottomPanel';
 import { MapSnapshot } from '../../model';
 import { AreaKey } from '../../data/areas';
 import { Character } from '../../data/characters';
+import { ModalController } from './modal/modalController';
 
 export interface UiProps {
     msg?: string | null;
@@ -20,9 +21,7 @@ export interface UiProps {
 
     onAreaClick?: (key: AreaKey) => void;
     onUndo?: () => void;
-    onCharacterSelected?: (character: Character | null) => void;
-
-    isModalVisible?: boolean;
+    modalController?: ModalController;
 }
 
 class UiScreen extends Component<UiProps> {
@@ -40,8 +39,8 @@ class UiScreen extends Component<UiProps> {
         console.log('render ui', this.props);
         return <Layout>
             { (theme) => {
-                return <MixedMediaModal onCharacterSelected={ this.props.onCharacterSelected }
-                                        pageSizes={ theme.pageSizes } isVisible={ !!this.props.isModalVisible }>
+                return <MixedMediaModal controller={this.props.modalController}
+                                        pageSizes={ theme.pageSizes }>
                     {
                         (modal) => (<>
                             { this.renderTopPanel() }

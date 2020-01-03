@@ -33,8 +33,6 @@ class ModalBackground extends Component<Props> {
 
     constructor(props: Props) {
         super(props);
-        console.log('app', props.app);
-
         props.app.ticker.add(this.tick);
     }
 

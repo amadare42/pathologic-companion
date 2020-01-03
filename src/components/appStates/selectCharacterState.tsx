@@ -4,9 +4,13 @@ import { UiProps } from '../hud/uiScreen';
 import { strings } from '../locale/strings';
 import Button from '../hud/button/button';
 import { RouteProps, BaseAppState } from './appState';
+import { SelectCharacterModalController } from '../hud/modal/selectCharacter/controller';
+import { delay } from '../../utils';
+import { timings } from '../hud/modal/selectCharacter/timings';
 
 interface State {
     character: Character | null;
+    inTransition: boolean;
 }
 
 interface Props {
@@ -15,26 +19,41 @@ interface Props {
 
 export class SelectCharacterState extends BaseAppState<State> {
 
+    private modalController: SelectCharacterModalController;
+
     constructor(routeProps: RouteProps, private props: Props) {
         super(routeProps, {
-            character: null
+            character: null,
+            inTransition: false
         });
+        this.modalController = new SelectCharacterModalController(this.charChanged);
     }
 
+    charChanged = (character: Character | null) => this.setState({ character });
+
     renderProps = (): UiProps => {
-        const { character } = this.state;
+        const { character, inTransition } = this.state;
+        if (inTransition) {
+            return {
+                modalController: this.modalController
+            };
+        }
         return {
             msg: strings.selectCharacter(),
             undoVisible: true,
-            isModalVisible: true,
-            onCharacterSelected: (character) => {
-                this.setState({ character })
-            },
+            modalController: this.modalController,
             bottomButtons: () => {
                 return <Button iconHref={ 'icons/contaminate_button.png' } isVisible={ !!character }
-                               onClick={ () => this.props.onCharacterSelected(character!) }/>;
+                               onClick={ () => this.modalController.contaminate(character) }/>;
             },
-            onUndo: () => this.routeProps.popState()
+            onUndo: () => {
+                this.modalController.contaminate(null);
+                delay(1200)
+                    .then(() => this.routeProps.popState());
+                this.setState({
+                    inTransition: true
+                })
+            }
         }
     }
 }
