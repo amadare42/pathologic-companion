@@ -26,7 +26,7 @@ interface CrowSprite {
     }
 }
 
-class ModalBackground extends Component<Props> {
+class CrowsAnimation extends Component<Props> {
 
     private crows: CrowSprite[] = [];
     private container: PIXI.Container = null as any;
@@ -89,16 +89,16 @@ class ModalBackground extends Component<Props> {
             this.crows = [];
         }
 
-        const factor = 25;
-        const xCount = rect.width / factor;
-        const yCount = rect.height / factor;
+        const density = 25;
+        const xCount = rect.width / density;
+        const yCount = rect.height / density;
         const rnd = () => getRandomInt(-25, 25);
 
         for (let x = 0; x < xCount; x++) {
             for (let y = 0; y < yCount; y++) {
                 const sprite = this.createSprite({
-                    x: rect.x + factor * x + rnd(),
-                    y: rect.y + factor * y + rnd(),
+                    x: rect.x + density * x + rnd(),
+                    y: rect.y + density * y + rnd(),
                 });
                 this.crows.push(sprite);
             }
@@ -122,7 +122,7 @@ class ModalBackground extends Component<Props> {
         sprite.x = start.x;
         sprite.y = start.y;
         sprite.anchor.set(0.5);
-        sprite.scale.set(scale, scale)
+        sprite.scale.set(scale, scale);
         sprite.animationSpeed = getRandomInt(5, 10) / 10;
         sprite.angle = getRandomInt(0, 30);
         sprite.gotoAndPlay(getRandomInt(0, 10));
@@ -185,4 +185,4 @@ class ModalBackground extends Component<Props> {
 }
 
 export default withResources(withPixiApp(
-    ModalBackground));
+    CrowsAnimation));

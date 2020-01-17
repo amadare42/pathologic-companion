@@ -17,8 +17,7 @@ export const COLORS = {
     activeTint: 0x811000,
     passedTint: 0x4A2319,
 
-    charTints: ['#021d3f', '#c26000', '#400000']
-
+    charTints: ['#021d3f', '#D62F01', '#400000', '#ffffff']
 };
 
 export const FONTS = {

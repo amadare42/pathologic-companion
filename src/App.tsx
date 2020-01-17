@@ -4,6 +4,12 @@ import { ThemeProvider } from '@material-ui/styles';
 import { createThemeFromScreenSize } from './components/theme/createTheme';
 import StateRouter from './components/appStates/stateRouter';
 
+window.oncontextmenu = function(event: any) {
+    event.preventDefault();
+    event.stopPropagation();
+    return false;
+};
+
 class App extends React.Component {
 
     render() {

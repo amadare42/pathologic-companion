@@ -1,6 +1,6 @@
 import { Character } from '../../../../data/characters';
 import SelectCharacterModalContent from './selectCharacterModalContent';
-import ModalBackground from '../modalBackground';
+import BackgroundAnimation from '../crowsAnimation';
 import CharacterCard from './characterCard';
 import React from 'react';
 import { ModalController, ModalProps } from '../modalController';
@@ -16,12 +16,13 @@ export class SelectCharacterModalController implements ModalController {
 
     modalMode: ModalMode = 'visible';
 
-    character: Character | null = null;
+    selectedCharacters: Character[] = [];
+    lastChar: Character | null = null;
 
     props: ModalProps | null = null;
 
     constructor(
-        private charChanged: (character: Character | null) => void
+        private charChanged: (characters: Character[]) => void
     ) { }
 
     setProps = (props: ModalProps) => this.props = props;
@@ -46,7 +47,7 @@ export class SelectCharacterModalController implements ModalController {
 
         return <>
             { this.renderCharacterOverlay(props) }
-            <ModalBackground isVisible={ this.modalMode == 'visible' } rect={ {
+            <BackgroundAnimation isVisible={ this.modalMode === 'visible' } rect={ {
                 x: sizes.left,
                 y: sizes.pixiTop,
                 width: sizes.width,
@@ -57,25 +58,26 @@ export class SelectCharacterModalController implements ModalController {
 
     renderCharacterOverlay = (props: ModalProps) => {
         const { sizes, pageSizes } = props;
-        return <CharacterCard selectedCharacter={ this.character }
+        return <CharacterCard allSelectedCharacters={ this.selectedCharacters }
+                              selectedCharacter={ this.lastChar }
                               sizes={ sizes }
                               pageSizes={ pageSizes }
                               mode={ this.modalMode }/>;
     };
 
-    onCharacterChanged = (character: Character | null) => {
-        this.character = character;
+    onCharacterChanged = (character: Character | null, allChars: Character[]) => {
+        this.selectedCharacters = allChars;
+        this.lastChar = character;
         this.props?.update();
-        this.charChanged(character);
-    }
+        this.charChanged(allChars);
+    };
 
-    contaminate = (character: Character | null) => {
-        if (character) {
+    contaminate = (characters: Character[]) => {
+        if (characters.length) {
             this.modalMode = 'killed-and-hidden';
         } else {
             this.modalMode = 'hidden';
         }
-        console.log('cont', this.props, character, this);
         this.props?.update();
     }
 }

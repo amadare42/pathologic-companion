@@ -8,35 +8,26 @@ import MapView from '../mapView/mapView';
 import BottomPanel from './bottomPanel/bottomPanel';
 import { MapSnapshot } from '../../model';
 import { AreaKey } from '../../data/areas';
-import { Character } from '../../data/characters';
 import { ModalController } from './modal/modalController';
 
 export interface UiProps {
     msg?: string | null;
-    mainMsg?: string | null;
 
-    undoVisible?: boolean;
+    mainMsg?: string | null;
+    msgAccented?: boolean;
+
     bottomButtons?: () => React.ReactNode;
-    mapSnapshot?: MapSnapshot;
+    onMapBottomButtons?: () => React.ReactNode;
+    onMapTopButtons?: () => React.ReactNode;
+    mapSnapshot?: MapSnapshot | null;
 
     onAreaClick?: (key: AreaKey) => void;
-    onUndo?: () => void;
-    modalController?: ModalController;
+    modalController?: ModalController | null;
 }
 
 class UiScreen extends Component<UiProps> {
 
-    constructor(props: any) {
-        super(props);
-        console.log('ctor', this.props);
-    }
-
-    componentWillUnmount(): void {
-        console.log('unmounted!');
-    }
-
     render() {
-        console.log('render ui', this.props);
         return <Layout>
             { (theme) => {
                 return <MixedMediaModal controller={this.props.modalController}
@@ -47,6 +38,7 @@ class UiScreen extends Component<UiProps> {
                             { this.renderStage(theme, modal) }
                             { modal.renderModal() }
                             { this.renderBottomPanel(theme.pageSizes) }
+                            { this.renderOnMapTopButtons(theme.pageSizes) }
                         </>)
                     }
                 </MixedMediaModal>
@@ -54,7 +46,18 @@ class UiScreen extends Component<UiProps> {
         </Layout>
     }
 
-    private renderTopPanel = () => <TopPanel main={ this.props.mainMsg } secondary={ this.props.msg }/>;
+    private renderOnMapTopButtons = (pageSizes: PageSizes) => {
+        if (!this.props.onMapTopButtons) return null;
+
+        return <div style={{ position: 'absolute', right: '10vw', zIndex: 1000, top: ~~(pageSizes.viewport.height * 0.04 + pageSizes.top) }}>
+            { this.props.onMapTopButtons() }
+        </div>
+    };
+
+    private renderTopPanel = () => <TopPanel
+        main={ this.props.mainMsg }
+        msgAccented={ this.props.msgAccented }
+        secondary={ this.props.msg }/>;
 
     private renderStage = ({ pageSizes }: Theme, modalRenderer: ModalRenderer) => {
         const middleSize = {
@@ -72,8 +75,7 @@ class UiScreen extends Component<UiProps> {
 
     private renderBottomPanel = (pageSizes: PageSizes) => <BottomPanel pageSizes={ pageSizes }
                                                                        buttons={ this.props.bottomButtons }
-                                                                       onUndo={ this.props.onUndo }
-                                                                       undoVisible={ !!this.props.undoVisible }
+                                                                       onMapButtons={ this.props.onMapBottomButtons }
     />;
 }
 

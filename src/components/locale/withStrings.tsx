@@ -4,7 +4,7 @@ import { Strings } from './strings';
 export const StringsContext = createContext<Strings | null>(null);
 
 export interface WithStrings {
-    resources: Strings;
+    strings: Strings;
 }
 
 export function withStrings<TProps extends WithStrings>(WrappedComponent: React.ComponentType<TProps>) {

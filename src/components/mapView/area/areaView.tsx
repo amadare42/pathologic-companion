@@ -8,7 +8,6 @@ import AreaSpriteFill from './areaSpriteFiller';
 import { AreaFill, AreaTokenType } from '../../../model';
 import { AreaOverlay } from './areaOverlay';
 import { SiegeToken } from '../tokens/siegeToken';
-import PassedToken from '../tokens/passedToken';
 
 interface Props {
     resources: Resources;
@@ -40,7 +39,7 @@ class AreaView extends React.Component<Props> {
                 <RawDisplayObj obj={ this.maskSprite }/>
                 <AreaSpriteFill fill={ fill }
                                 bbox={ bbox }
-                                resources={ this.props.resources }
+                                resources={ resources }
                                 sizeMult={ this.getSizeMult(area.key) }
                 />
             </Container>

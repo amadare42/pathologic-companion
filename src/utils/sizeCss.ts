@@ -9,8 +9,8 @@ export const sizeCss = (size: Size, padding: number = 0): CSSProperties => {
 };
 
 export const calcCss = (size: Size, part: number, side: 'vmin' | 'vmax' | 'width' | 'height' | 'vh' | 'vw') => {
-    side = side == 'vh' ? 'height' : side;
-    side = side == 'vw' ? 'width' : side;
+    side = side === 'vh' ? 'height' : side;
+    side = side === 'vw' ? 'width' : side;
     const sideValue = side === 'width' || side === 'height'
         ? size[side]
         : side === 'vmin'

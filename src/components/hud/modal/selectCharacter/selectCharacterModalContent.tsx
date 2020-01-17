@@ -2,15 +2,15 @@ import React, { Component } from 'react';
 import { createStyles, WithStyles, withStyles } from '@material-ui/styles';
 import classNames from 'classnames';
 import { COLORS } from '../../../mapView/animationConstants';
-import { Character, characters } from '../../../../data/characters';
-import { ReactComponent as Icon } from '../../../../images/hand_white.svg';
+import { Character, characters, healerCharacters } from '../../../../data/characters';
 import { calcCss } from '../../../../utils/sizeCss';
 import { PageSizes } from '../../../theme/createTheme';
 import ReactHammer from 'react-hammerjs';
-import * as gsap from 'gsap';
 import { timings } from './timings';
 import { ModalMode } from './controller';
-
+import SliderIndicator from './sliderIndicator';
+import ModalTitleRow from '../modalTitleRow';
+import { ReactComponent as Icon } from '../../../../images/hand_white.svg';
 
 interface Props extends WithStyles<typeof styles> {
     mode: ModalMode;
@@ -21,36 +21,41 @@ interface Props extends WithStyles<typeof styles> {
         left: number
     },
     pageSizes: PageSizes,
-    onSelectedCharacterChanged: (char: Character | null) => void
+    onSelectedCharacterChanged: (activeCharacter: Character | null, allSelectedChars: Character[]) => void
 }
 
 interface State {
     pageSelected: number;
-    characterSelected?: string | null;
+    selectedCharacters: Character[];
 }
 
 class SelectCharacterModalContent extends Component<Props, State> {
 
     state: State = {
         pageSelected: 0,
-        characterSelected: null
+        selectedCharacters: []
     };
 
-    constructor(props: any) {
-        super(props);
-
-        characters.forEach(char => {
-            const img = document.createElement('img');
-            img.src = `cards/${ char.id }.jpg`;
-        });
-    }
+    getDisplayCharacter = () => {
+        const { selectedCharacters, pageSelected } = this.state;
+        if (!selectedCharacters.length) {
+            return null;
+        }
+        const lastChar = selectedCharacters[selectedCharacters.length - 1];
+        if (pageSelected !== lastChar.closeFor) {
+            return null;
+        }
+        return lastChar;
+    };
 
     render() {
         const { classes, modalSizes } = this.props;
-        const { pageSelected, characterSelected } = this.state;
-        const isVisible = this.props.mode == 'visible';
+        const { pageSelected } = this.state;
+        const isVisible = this.props.mode === 'visible';
 
-        return <div>
+        const displayCharacter = this.getDisplayCharacter();
+
+        return <div style={ { pointerEvents: isVisible ? 'all' : 'none' } }>
             { this.renderOverlay() }
             <ReactHammer onSwipe={ this.onSwipe }>
                 <div
@@ -64,9 +69,7 @@ class SelectCharacterModalContent extends Component<Props, State> {
                         height: modalSizes.height
                     } }>
 
-                    <div className={ classes.titleRow }>
-                        { characterSelected ? characters.find(c => c.id === this.state.characterSelected)!.name : '' }
-                    </div>
+                    <ModalTitleRow text={ displayCharacter?.name } />
 
                     <div className={ classes.cardSelectionRow }>
                         { this.renderCardsRow(pageSelected) }
@@ -79,14 +82,20 @@ class SelectCharacterModalContent extends Component<Props, State> {
         </div>
     }
 
+    componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
+        if (this.props.mode !== 'visible' && this.state.selectedCharacters.length) {
+            this.setState({ pageSelected: 0, selectedCharacters: []});
+        }
+    }
+
     private onSwipe = (ev: HammerInput) => {
         let page = this.state.pageSelected;
         if (ev.velocityX > 0) {
             page--;
-            if (page < 0) page = 2;
+            if (page < 0) page = 3;
         } else if (ev.velocityX < 0) {
             page++;
-            if (page > 2) page = 0;
+            if (page > 3) page = 0;
         }
         this.setPage(page);
     };
@@ -95,9 +104,9 @@ class SelectCharacterModalContent extends Component<Props, State> {
         const { classes, pageSizes, mode } = this.props;
 
         return <div className={ classNames(classes.overlay, {
-            visible: mode == 'visible',
-            kill: mode == 'killed-and-hidden',
-            hidden: mode == 'hidden'
+            visible: mode === 'visible',
+            kill: mode === 'killed-and-hidden',
+            hidden: mode === 'hidden'
         }) } style={ {
             top: pageSizes.top,
         } }/>;
@@ -111,51 +120,66 @@ class SelectCharacterModalContent extends Component<Props, State> {
 
         return <div className={ classes.sliderIndicatorRow }
                     style={ { width: modalSizes.width - padding * 2, paddingLeft: padding, paddingRight: padding } }>
-            { COLORS.charTints.map((_, i) => this.renderSliderIndicator(i === pageSelected, i, s)) }
+            { COLORS.charTints.map((_, i) => this.renderSliderIndicator(i === pageSelected, i)) }
         </div>
     };
 
-    renderSliderIndicator = (isActive: boolean, idx: number, size: number) => {
-        const { classes } = this.props;
-        return <SliderIndicator key={ idx } className={ classNames(classes.sliderIndicator, { 'active': isActive }) }
-                                color={ COLORS.charTints[idx] } size={ size }
-                                onClick={ () => this.setPage(idx) }/>
+    renderSliderIndicator = (isActive: boolean, idx: number) => {
+
+        const num = idx == 3
+            ? this.state.selectedCharacters.filter(c => c.isHealer).length
+            : this.state.selectedCharacters.filter(c => !c.isHealer && c.closeFor === idx).length;
+
+        return <SliderIndicator key={ idx } isActive={ isActive }
+                                isHealer={ idx == 3 }
+                                num={ num }
+                                onClick={ () => this.setPage(idx) }>
+            <Icon color={ COLORS.charTints[idx] }
+                  viewBox={ '0 0 340 340' }
+                  width={ '100%' }
+                  height={ '100%' } />
+        </SliderIndicator>
     };
 
     setPage = (pageNo: number) => {
         this.setState({
-            characterSelected: null,
             pageSelected: pageNo
         });
-        this.props.onSelectedCharacterChanged(null);
-    }
+        this.props.onSelectedCharacterChanged(null, this.state.selectedCharacters);
+    };
 
-    renderCardsRow = (closeTo: number) => {
-        const chars = characters.filter(c => c.closeFor === closeTo);
+    renderCardsRow = (page: number) => {
+        if (page === 3) {
+            return healerCharacters.map(this.renderCard);
+        }
+        const chars = characters.filter(c => c.closeFor === page);
         return chars.map(this.renderCard);
     };
 
     renderCard = (char: Character) => {
         const { classes } = this.props;
+        const { selectedCharacters } = this.state;
         return <div key={ char.id }>
-            <img draggable={ false } className={ classNames(classes.card, `c${ char.closeFor }`, {
-                active: char.id === this.state.characterSelected,
+            <img draggable={ false } alt={char.name} className={ classNames(classes.card, `c${ char.closeFor }`, {
+                active: selectedCharacters.some(c => c.id === char.id),
             }) } onClick={ () => this.onCardClick(char) } src={ `cards/${ char.id }.jpg` }/>
         </div>
     };
 
     onCardClick = (char: Character) => {
-        this.props.onSelectedCharacterChanged(char);
-        this.setState({ characterSelected: char.id });
+        let selectedCharacters = this.state.selectedCharacters;
+        const existingIndex = selectedCharacters.findIndex(c => c.id === char.id);
+        if (existingIndex >= 0) {
+            selectedCharacters.splice(existingIndex, 1);
+            const newChar = selectedCharacters[selectedCharacters.length - 1] || null;
+            this.props.onSelectedCharacterChanged(newChar, this.state.selectedCharacters);
+        } else {
+            selectedCharacters.push(char);
+            this.props.onSelectedCharacterChanged(char, this.state.selectedCharacters);
+        }
+        this.setState({ selectedCharacters });
     }
 }
-
-const SliderIndicator = (props: { className: string, color: string, size: number, onClick: () => void }) => {
-    return <Icon className={ props.className } color={ props.color }
-                 viewBox={ '0 0 340 340' }
-                 onClick={ props.onClick }
-                 height={ props.size } width={ props.size }/>;
-};
 
 const styles = createStyles({
     '@keyframes appear': {
@@ -164,6 +188,10 @@ const styles = createStyles({
     },
     '@keyframes disappear': {
         from: { opacity: 1 },
+        to: { opacity: 0 }
+    },
+    '@keyframes disappearP': {
+        from: { opacity: 0.3 },
         to: { opacity: 0 }
     },
     wrapper: {
@@ -182,17 +210,6 @@ const styles = createStyles({
         pointerEvents: 'all'
     },
 
-    titleRow: {
-        paddingLeft: '1vw',
-        paddingRight: '1vw',
-        minHeight: '5vh',
-        width: '100%',
-        color: '#ffffff',
-        fontSize: '3.8vh',
-        textAlign: 'center',
-        overflow: 'hidden',
-        whiteSpace: 'nowrap'
-    },
     cardSelectionRow: {
         display: 'flex',
         justifyContent: 'space-around'
@@ -210,6 +227,9 @@ const styles = createStyles({
             },
             '&.c2': {
                 boxShadow: `0px 0px 30px 10px ${ COLORS.charTints[2] }`,
+            },
+            '&.c3': {
+                boxShadow: `0px 0px 30px 10px ${ COLORS.charTints[3] }`,
             }
         },
     },
@@ -223,15 +243,6 @@ const styles = createStyles({
         // paddingLeft: '24vh',
         // paddingRight: '24vh',
     },
-    sliderIndicator: {
-        height: '3.5vh',
-        width: '3.5vh',
-        transition: '0.3s linear all',
-        '&.active': {
-            transform: 'scale(1.5)',
-            'filter': 'brightness(300%)'
-        }
-    },
 
     overlay: {
         position: 'absolute',
@@ -239,6 +250,7 @@ const styles = createStyles({
         height: '100%',
         opacity: 0,
         animationFillMode: 'forwards',
+        transition: '0.2s linear all',
         background: 'linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,1) 100%)',
         '&.visible': {
             animationName: '$appear',
@@ -246,11 +258,13 @@ const styles = createStyles({
             animationDuration: '0.3s',
         },
         '&.kill': {
-            animationName: '$disappear',
-            animationDelay: '0.7s',
-            animationDuration: `${ timings.destructionTotal - 0.7 }s`
+            opacity: 0.3,
+            animationName: '$disappearP',
+            animationDelay: `${ timings.destructionTotal - 0.3 }s`,
+            animationDuration: '0.3s',
         },
         '&.hidden': {
+            opacity: 1,
             animationName: '$disappear',
             animationDuration: '0.3s',
         }

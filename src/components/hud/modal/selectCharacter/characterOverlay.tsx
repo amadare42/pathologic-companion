@@ -1,12 +1,11 @@
-import { Resources, ResourcesContext, withResources } from '../../../mapView/loadResources';
+import { Resources, withResources } from '../../../mapView/loadResources';
 import { PageSizes } from '../../../theme/createTheme';
 import { Character } from '../../../../data/characters';
-import React, { Component, useContext } from 'react';
+import React, { Component } from 'react';
 import * as PIXI from 'pixi.js';
 import { Sprite, Container } from '@inlet/react-pixi';
 import { ModalSizes } from '../mixedMediaModal';
-import { RawDisplayObj } from '../../../mapView/pixiUtils/rawDisplayObj';
-import { Point, Rectangle } from '../../../../model';
+import { Rectangle } from '../../../../model';
 
 interface Props {
     resources: Resources,
@@ -16,12 +15,7 @@ interface Props {
     positionCalculated: (rect: Rectangle) => void;
 }
 
-interface State {
-    mode: 'none' | 'partial' | 'full';
-}
-
 class CharacterOverlay extends Component<Props> {
-
 
     render() {
         const { sizes, pageSizes, resources } = this.props;

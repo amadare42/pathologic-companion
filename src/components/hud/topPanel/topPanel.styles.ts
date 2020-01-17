@@ -14,13 +14,16 @@ export const styles = (theme: Theme) => {
             zIndex: 100,
         },
         padding: {
-            padding: SIZES.UI.panelPaddingPx
+            paddingTop: '1vh',
+            paddingLeft: '2vw',
+            paddingRight: '2vw',
+            // padding: SIZES.UI.panelPaddingPx
         },
         mainRow: {
             display: 'flex',
             flexDirection: 'row',
             fontSize: '7vh',
-            paddingLeft: '15px',
+            paddingLeft: '2vw',
             justifyContent: 'space-between'
         },
         secondaryRow: {
@@ -29,10 +32,14 @@ export const styles = (theme: Theme) => {
             verticalAlign: 'middle',
             height: '6vh',
             width: '100vw',
-            display: 'table-cell'
+            display: 'table-cell',
+            '&.accented': {
+                color: '#e7ea81'
+            }
         },
         title: {
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            fontSize: '40px',
         },
         stylizedTransition: {
             position: 'absolute',

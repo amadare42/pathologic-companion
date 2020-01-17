@@ -5,15 +5,14 @@ import Button from '../button/button';
 import { PageSizes } from '../../theme/createTheme';
 
 interface Props extends WithStyles<typeof styles> {
-    undoVisible: boolean;
     buttons?: () => React.ReactNode;
+    onMapButtons?: () => React.ReactNode;
     pageSizes: PageSizes;
-    onUndo?: () => void;
 }
 
 class BottomPanel extends Component<Props> {
     render() {
-        const { classes, buttons } = this.props;
+        const { classes, buttons, onMapButtons } = this.props;
         return <div className={ classes.wrapper } style={{
             bottom: 0
         }}>
@@ -24,7 +23,7 @@ class BottomPanel extends Component<Props> {
             </div>
             <div className={ classes.stylizedTransition } />
             <div className={ classes.undoContainer }>
-                <Button isVisible={this.props.undoVisible} iconHref={'icons/undo_button.png'} onClick={this.props.onUndo} />
+                { onMapButtons ? onMapButtons() : null }
             </div>
         </div>
     }

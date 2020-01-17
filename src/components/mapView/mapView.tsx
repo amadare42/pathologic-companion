@@ -10,8 +10,8 @@ import { MapBackground } from './mapBackground';
 import { WithSize } from '../stage/autoSizeContext';
 
 interface Props extends WithSize, WithResources {
-    mapSnapshot?: MapSnapshot;
-    onAreaClick?: (key: AreaKey) => void,
+    mapSnapshot?: MapSnapshot | null;
+    onAreaClick?: (key: AreaKey) => void
 }
 
 const emptySnapshot = {
@@ -21,17 +21,21 @@ const emptySnapshot = {
 
 class MapView extends React.Component<Props> {
 
-    componentWillUnmount(): void {
-        console.log('map unmount')
+    private grayscaleFilter: PIXI.filters.ColorMatrixFilter;
+
+    constructor(props: any) {
+        super(props);
+        this.grayscaleFilter = new PIXI.filters.ColorMatrixFilter();
+        this.grayscaleFilter.desaturate();
     }
 
     render = () => {
         const { resources, size: { width, height } } = this.props;
         return <ViewPort onClick={ this.onClick } screenWidth={ width } screenHeight={ height }>
-            <Container>
+            <Container filters={this.props.mapSnapshot?.grayscale ? [this.grayscaleFilter] : []}>
                 { this.renderMap(resources) }
                 { this.renderAreas(resources) }
-                { this.renderBorders(resources) }
+                {/*{ this.renderBorders(resources) }*/}
             </Container>
         </ViewPort>
     };
@@ -45,6 +49,7 @@ class MapView extends React.Component<Props> {
         return resources.areas.map(area =>
             <AreaView resources={ resources }
                       area={ area }
+                      key={ area.key }
                       fill={ fills[area.key] }
                       tokens={ tokens.filter(t => t.areaKey === area.key).map(t => t.token) }
             />);
@@ -52,7 +57,7 @@ class MapView extends React.Component<Props> {
 
     renderBorders = (resources: Resources) => {
         return resources.borderTiles.map(({ tex, x, y }, i) =>
-            <Sprite key={ i } texture={ tex } x={ x } y={ y } zIndex={ 9 }/>
+            (<Sprite key={ i } texture={ tex } x={ x } y={ y } zIndex={ 9 }/>)
         );
     };
 

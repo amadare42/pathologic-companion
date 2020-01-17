@@ -2,8 +2,8 @@ import { AreaTileset, BBox, Point, QualityPreset, TilesetData } from '../../../m
 import { splitImgToTiles } from '../pixiUtils/canvasTiling';
 import * as PIXI from 'pixi.js';
 import { AreaKey, areaKeys, areasBBoxes, hitAreas, tokenPositions } from '../../../data/areas';
-import { Depromisify } from '../../../utils';
-import { characters } from '../../../data/characters';
+import { delay, Depromisify } from '../../../utils';
+import { characters, healerCharacters } from '../../../data/characters';
 
 export interface TextureTile {
     x: number,
@@ -36,7 +36,7 @@ export async function loadResources(app: PIXI.Application, quality: QualityPrese
         timed('map', () => loadMapTiles('low')),
         timed('areas', () => loadAreas(quality)),
         splitImgToTiles('/borders.svg'),
-        loadCrowsTextures(),
+        loadCrowsTextures(app.loader),
         loadCharacterCards(app.loader),
     ]));
 
@@ -50,6 +50,8 @@ export async function loadResources(app: PIXI.Application, quality: QualityPrese
         redHand: PIXI.Texture.from('icons/hand_red.svg'),
         siegeToken: PIXI.Texture.from('icons/siege.png'),
         cloudTex: PIXI.Texture.from('cards/cloud_tex.png'),
+        cardMaskTex: PIXI.Texture.from('cards/card_mask.png'),
+        missionCards: [PIXI.Texture.from(`cards/missions/12.jpg`)],
         sizes: {
             hand: 340,
             siegeToken: 437
@@ -142,18 +144,22 @@ export async function loadAreaOverlayTiles(quality: QualityPreset) {
 
 }
 
-export function loadCrowsTextures() {
-    let textures = [];
-    for (let i = 0; i<=17; i++) {
-        textures.push(PIXI.Texture.from(`ui/crowSprites/crow_${i}.png`));
-    }
-    return textures;
+export async function loadCrowsTextures(loader: PIXI.Loader) {
+    const data: { width: number, height: number, sprites: Point[] } = await fetch('ui/crowSprites/data.json')
+        .then(rsp => rsp.json());
+
+    const baseTex = PIXI.BaseTexture.from('ui/crowSprites/sheet.png');
+    const sprites = data.sprites.map(({x, y}) =>
+        new PIXI.Texture(baseTex, new PIXI.Rectangle(x, y, data.width, data.height))
+    );
+
+    return sprites;
 }
 
 export async function loadCharacterCards(loader: PIXI.Loader) {
     let obj: { [key: string]: PIXI.BaseTexture } = {} as any;
     let onComplete = new Promise(r => loader.onComplete.add(r));
-    for (let character of characters) {
+    for (let character of [...characters, ...healerCharacters]) {
         loader.add(`cards/${character.id}.jpg`);
         obj[character.id] = new PIXI.BaseTexture(`cards/${character.id}.jpg`, {
             alphaMode: PIXI.ALPHA_MODES.PREMULTIPLIED_ALPHA

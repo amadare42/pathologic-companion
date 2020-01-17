@@ -46,6 +46,7 @@ export interface MapSnapshot {
     transition?: AreaTransition;
     fills: AreaFills;
     tokens: AreaToken[];
+    grayscale?: boolean;
 }
 
 export type AreaFill = 'active' | 'available' | 'passed' | 'disabled' | 'passed-available';
