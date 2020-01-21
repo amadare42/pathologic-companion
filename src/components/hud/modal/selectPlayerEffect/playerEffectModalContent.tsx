@@ -7,6 +7,7 @@ import { PageSizes } from '../../../theme/createTheme';
 import ReactHammer from 'react-hammerjs';
 import ModalTitleRow from '../modalTitleRow';
 import SliderIndicator from '../selectCharacter/sliderIndicator';
+import { m12, PlayerEffectItem, sPlusMovement } from '../../../../data/healersEffects';
 
 interface Props extends WithStyles<typeof styles> {
     modalSizes: {
@@ -27,61 +28,34 @@ interface State {
     selectedCharacters: Character[];
 }
 
-export interface PlayerEffectItem {
-    id: string,
-    name: string,
-    image: string
-    type: string;
-}
-
 interface HealersPage {
     name: string;
     indicatorImage: string;
     items: PlayerEffectItem[];
 }
 
-const pages: HealersPage[] = [{
-    name: 'Місії',
-    indicatorImage: 'icons/missions.png',
-    items: [{
-        id: 'm-12',
-        name: 'Верхом на крысах',
-        image: 'cards/missions/12.jpg',
-        type: 'mission'
-    }
-        // , {
-        //     id: 'm-5',
-        //     name: 'Летаргия',
-        //     image: 'cards/missions/5.jpg',
-        //     type: 'mission'
-        // }
-    ]
-},
-//     {
-//     name: 'Рецепти',
-//     indicatorImage: 'icons/hand_white.svg',
-//     items: [{
-//         id: 'r-bak-blokada',
-//         name: 'Блокада',
-//         image: 'cards/recipes/bak_blokada.jpg',
-//         type: 'recipe'
-//     }, {
-//         id: 'r-sam-ne-uboishsya',
-//         name: 'Не убоишся',
-//         image: 'cards/recipes/samo_ne_uboishsya.jpg',
-//         type: 'recipe'
-//     }]
-// },
+const pages: HealersPage[] = [
     {
-    name: 'Штами',
-    indicatorImage: 'icons/stamm.png',
-    items: [{
-        id: 's-plus-movement',
-        name: 'Перемещение',
-        image: 'cards/stams/bonus_movement.jpg',
-        type: 'stam'
-    }]
-}];
+        name: 'Місії',
+        indicatorImage: 'icons/missions.png',
+        items: [{
+            id: 'm-12',
+            name: 'Верхом на крысах',
+            image: 'cards/missions/12.jpg',
+            type: 'mission'
+        }]
+    },
+    {
+        name: 'Штами',
+        indicatorImage: 'icons/stamm.png',
+        items: [{
+            id: 's-plus-movement',
+            name: 'Перемещение',
+            image: 'cards/stams/bonus_movement.jpg',
+            type: 'stam'
+        }]
+    }
+];
 
 
 class PlayerEffectModalContent extends Component<Props, State> {

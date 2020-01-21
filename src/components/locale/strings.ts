@@ -22,6 +22,7 @@ export const main = {
     cannotContaminateTwice: ['Неможливо почати зараження кілька разів за хід'],
     cannotContaminateCauseSiege: ['Неможливо почати зараження на ході з облогою'],
     confirmTurnEnd: ['Закінчити хід?'],
+    turnEnd: ['Закінчення ходу'],
     phase: ['Фаза {{phase}}', ['phase']],
     additionalMove: ['Додатк. крок'],
     startOfGame: ['Початок гри'],
@@ -34,12 +35,20 @@ export const main = {
     doubleMovement: ['Подвійне переміщення'],
     finishTurn: ['Закінчити хід'],
     contaminate: ['Зараження'],
+    contaminateOfLocation: ['Зараження {{locationNo, if-not:0}}«{{location}}»', ['locationNo', 'location']],
     startSiege: ['Почати Обогу'],
     finishSiege: ['Закінчити Облогу'],
     cancelAction: ['Відмінити дію'],
+    cancelSpecificAction: ['Відмінити «{{action}}»', ['action']],
     close: ['Закрити'],
     apply: ['Застосувати'],
     disable: ['Вимкнути'],
+    missions: ['Місії'],
+    stamms: ['Штами'],
+    effectm12: ['Верхом на крысах'],
+    effectsPlusMovement: ['Штамм Перемещение'],
+    selectLocation: ['Оберіть локацію'],
+    restoringGameState: ['Відновлення стану']
 } as const;
 
 let trans = {} as any;

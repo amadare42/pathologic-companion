@@ -8,12 +8,7 @@ import Button from '../hud/button/button';
 import { areaToLocation, locationToAreaKey, locationToAreaKeys } from '../../utils';
 import connections from '../../data/connections.json';
 import { strings } from '../locale/strings';
-
-interface Props {
-    onLocationSelected: (location: number, mapSnapshot: MapSnapshot) => void
-    initialLocation: number;
-    inSiege: number;
-}
+import { GameEngine, WorldState } from '../../core/gameEngine';
 
 interface State {
     selectedArea: AreaKey | null;
@@ -21,10 +16,13 @@ interface State {
 
 export class SelectBonusMovementLocationState extends BaseAppState<State> {
 
-    constructor(routeProps: RouteProps, private props: Props) {
+    private readonly world: WorldState;
+
+    constructor(routeProps: RouteProps, private game: GameEngine) {
         super(routeProps, {
             selectedArea: null
         });
+        this.world = { ...game.state() };
     }
 
     renderProps(): UiProps {
@@ -48,7 +46,7 @@ export class SelectBonusMovementLocationState extends BaseAppState<State> {
             const locationNo = areaToLocation(this.state.selectedArea);
             return strings.movementToLocation({ locationNo, location: connections[locationNo].name });
         } else {
-            return 'Select blocked region';
+            return strings.selectLocation();
         }
     };
 
@@ -57,17 +55,17 @@ export class SelectBonusMovementLocationState extends BaseAppState<State> {
     };
 
     private getAvailableAreas = () => {
-        return connections[this.props.initialLocation].connections.flatMap(locationToAreaKeys);
+        return [...connections[this.world.plagueLocation].connections.flatMap(locationToAreaKeys), ...locationToAreaKeys(this.world.plagueLocation)];
     };
 
     private getMapSnapshot = (): MapSnapshot => {
 
         const { selectedArea } = this.state;
 
-        const startingAreas = locationToAreaKeys(this.props.initialLocation);
+        const startingAreas = locationToAreaKeys(this.world.plagueLocation);
         const fills = Object.fromEntries(areaKeys.map(k => ([k, 'disabled']))) as AreaFills;
 
-        connections[this.props.initialLocation].connections.forEach(l => {
+        connections[this.world.plagueLocation].connections.forEach(l => {
             locationToAreaKeys(l).forEach(a => fills[a] = 'available')
         });
 
@@ -83,8 +81,8 @@ export class SelectBonusMovementLocationState extends BaseAppState<State> {
         }
 
         return {
-            tokens: this.props.inSiege > -1 && !this.state.selectedArea
-                ? [{ token: 'siege', areaKey: locationToAreaKey(this.props.initialLocation) }]
+            tokens: this.world.inSiege && !this.state.selectedArea
+                ? [{ token: 'siege', areaKey: locationToAreaKey(this.world.plagueLocation) }]
                 : [],
             fills
         }
@@ -94,7 +92,7 @@ export class SelectBonusMovementLocationState extends BaseAppState<State> {
         if (!this.getAvailableAreas().includes(area)) {
             return;
         }
-        if (this.props.inSiege > -1) {
+        if (this.world.inSiege) {
             this.routeProps.pushMessage(strings.cancelSiegeWarning());
         }
         this.setState({
@@ -104,7 +102,14 @@ export class SelectBonusMovementLocationState extends BaseAppState<State> {
 
     private onAreaConfirmed = () => {
         this.routeProps.popState();
-        const location = this.state.selectedArea ? areaToLocation(this.state.selectedArea) : this.props.initialLocation;
-        this.props.onLocationSelected(location, this.getMapSnapshot());
+        const location = this.state.selectedArea ? areaToLocation(this.state.selectedArea) : this.world.plagueLocation;
+        this.routeProps.pushMessage(strings.movementToLocation({
+            locationNo: location,
+            location: connections[location].name
+        }));
+        this.game.pushAction({
+            type: 'healers-s-plus-movement',
+            to: location
+        });
     }
 }

@@ -29,13 +29,32 @@ export type PlagueTurnEndAction = {
     type: 'end-plague-turn'
 }
 
-export type GameAction =
-    StartAction |
-    MovementsAction |
+export type HealersMission12 = {
+    type: 'healers-m12',
+    active: boolean
+}
+
+export type HealersBonusMovementStam = {
+    type: 'healers-s-plus-movement',
+    to: number
+}
+
+export type HealersTurnEndAction = {
+    type: 'end-healers-turn'
+}
+
+export type ControlActions = StartAction
+    | PlagueTurnEndAction
+    | HealersTurnEndAction;
+
+export type PlagueActions = MovementsAction |
     ContaminationAction |
     SiegeStartAction |
-    SiegeEndAction |
-    PlagueTurnEndAction;
+    SiegeEndAction;
+
+export type HealersActions = HealersMission12 | HealersBonusMovementStam;
+
+export type GameAction = ControlActions | PlagueActions | HealersActions;
 
 export type GameActionType = GameAction['type'];
 
@@ -48,3 +67,5 @@ export interface TurnState {
     inSiege: number;
     turnActions: PlagueAction[];
 }
+
+export const controlActionTypes: GameActionType[] = ['start', 'end-plague-turn', 'end-healers-turn'];

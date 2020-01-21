@@ -1,32 +1,60 @@
 import { BaseAppState, RouteProps } from './appState';
 import { UiProps } from '../hud/uiScreen';
-import { trackingService } from '../../turnTracking/turnTrackingService';
+import { PersistenceService, trackingService } from '../../core/persistenceService';
 import { PlagueTurnState} from './plagueTurnState';
 import { SelectStartingAreaState } from './selectStartingAreaState';
-import { TurnState } from '../../model/actions';
+import { ActionSnapshot, GameEngine } from '../../core/gameEngine';
+import { HealersTurnState } from './healersTurnState';
+import { strings } from '../locale/strings';
+import { urlSerializer } from '../../core/gameActionsUrlSerializer';
+import { ReplayState } from './replayState';
 
 export class RestoreAppState extends BaseAppState<{}> {
 
-    constructor(routeProps: RouteProps) {
+    constructor(routeProps: RouteProps, private persistenceService: PersistenceService = new PersistenceService()) {
         super(routeProps, {});
-        trackingService.getLatestTurn().then(this.onLatestTurnReceived)
+        const url = new URLSearchParams(document.location.search).get('r');
+        if (url) {
+            setTimeout(() => this.restoreFromUrl(url), 0);
+        } else {
+            trackingService.getAll().then(this.onLoaded);
+        }
     }
 
-    onLatestTurnReceived = (turn: TurnState | null) => {
-        console.log('received', turn)
+    restoreFromUrl = (url: string) => {
+        try {
+            const actions = urlSerializer.deserialize(url);
+            this.routeProps.popState();
+            this.routeProps.pushState(new ReplayState(this.routeProps, actions));
+        } catch (e) {
+            // TODO: error parsing url handling
+            console.log('Error parsing url', e);
+            this.onLoaded(null);
+        }
+    };
+
+    onLoaded = (actions: ActionSnapshot[] | null) => {
         this.routeProps.popState();
-        if (!turn) {
+        if (!actions) {
             this.routeProps.pushState(new SelectStartingAreaState(this.routeProps));
             return;
         }
-        this.routeProps.pushState(new PlagueTurnState(this.routeProps, {
-            turn
-        }));
+        const game = new GameEngine({
+            persistenceService: this.persistenceService,
+            actions
+        });
+        if (game.isPlagueTurn()) {
+            this.routeProps.pushState(new PlagueTurnState(this.routeProps, game));
+        } else {
+            const pTurn = new PlagueTurnState(this.routeProps, game);
+            this.routeProps.pushState(pTurn);
+            this.routeProps.pushState(new HealersTurnState(this.routeProps, { game, mapSnapshot: pTurn.getMapSnapshot() }))
+        }
     };
 
     renderProps(): UiProps {
         return {
-            mainMsg: 'Restoring prev game state'
+            mainMsg: strings.restoringGameState()
         };
     }
 

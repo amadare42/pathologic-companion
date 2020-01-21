@@ -3,9 +3,9 @@ import UiScreen, { UiProps } from '../hud/uiScreen';
 import { areaKeys } from '../../data/areas';
 import { AreaFills } from '../../model';
 import { AppState, Transition } from './appState';
-import { ReplayState } from './replayState';
-import { serializer } from '../../turnTracking/turnsSerializer';
 import { RestoreAppState } from './restoreAppState';
+import { inDebug } from '../../debug';
+import _ from 'lodash';
 
 interface State {
     appStates: AppState[];
@@ -21,6 +21,18 @@ const defaultUiProps: UiProps = {
     msgAccented: false
 };
 
+let debugState = {
+    state: '',
+    inStack: 0
+};
+
+inDebug((gui) => {
+    let folder = gui.addFolder('State Router');
+    folder.add(debugState, 'state').listen();
+    folder.add(debugState, 'inStack').listen();
+    folder.open();
+});
+
 class StateRouter extends Component<{}, State> {
 
     state: State = {
@@ -31,14 +43,7 @@ class StateRouter extends Component<{}, State> {
 
     constructor(props: any) {
         super(props);
-
-        const r = new URLSearchParams(document.location.search).get('r');
-        if (r) {
-            this.state.appStates = [new ReplayState(this.getRouteProps(),
-                serializer.deserialize(r))];
-        } else {
-            this.state.appStates = [new RestoreAppState(this.getRouteProps())];
-        }
+        this.state.appStates = [new RestoreAppState(this.getRouteProps())];
 
         // this.state.appStates = [new SelectStartingAreaState(this.getRouteProps())];
         // this.state.appStates = [new RestoreAppState(this.getRouteProps())];
@@ -102,6 +107,11 @@ class StateRouter extends Component<{}, State> {
     };
 
     render() {
+        inDebug(() => {
+            debugState.state = _.last(this.state.appStates)?.constructor.name || '(no)';
+            debugState.inStack = this.state.appStates.length;
+        });
+
         const uiProps = Object.assign({},
             defaultUiProps,
             ...this.state.appStates.map(s => s.renderProps()),

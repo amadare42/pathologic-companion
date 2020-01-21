@@ -38,16 +38,16 @@ export class PlagueTurnState extends BaseAppState<State> {
     }
 
     renderProps(): UiProps {
-        const turn = this.game.state();
+        const gameState = this.game.state();
         return {
-            mainMsg: strings.turnNo({ turn: turn.turnNo }) + ' - ' + this.getPhaseDescription(),
+            mainMsg: strings.turnNo({ turn: gameState.turnNo }) + ' - ' + this.getPhaseDescription(),
             mapSnapshot: this.getMapSnapshot(),
             bottomButtons: this.renderButtons,
-            msg: this.state.msg,
+            msg: gameState.statusMsg,
             onAreaClick: this.onAreaClick,
             onMapBottomButtons: this.renderUndo,
             onMapTopButtons: () => <Button iconHref={ 'icons/double_movement.png' }
-                                           isVisible={ turn.doubleMovement }
+                                           isVisible={ gameState.doubleMovement }
                                            tooltip={ {
                                                id: 'd-dmov',
                                                tooltipHint: strings.doubleMovement(),
@@ -174,11 +174,12 @@ export class PlagueTurnState extends BaseAppState<State> {
     };
 
     private onTurnEndConfirm = () => {
+        this.game.pushAction({
+            type: 'end-plague-turn'
+        });
         this.routeProps.pushState(new HealersTurnState(this.routeProps, {
             mapSnapshot: this.getMapSnapshot(),
-            currentLocation: this.getCurrentLocation(),
-            game: this.game,
-            onHealersTurnEnd: this.nextTurn
+            game: this.game
         }));
     };
 
@@ -270,16 +271,12 @@ export class PlagueTurnState extends BaseAppState<State> {
         this.update();
     };
 
-    private getMapSnapshot = (): MapSnapshot => {
+    getMapSnapshot = (): MapSnapshot => {
         const snap = {
             fills: this.getAreaFills(),
             tokens: this.getTokens()
         };
         return snap;
-    };
-
-    private nextTurn = () => {
-        this.update();
     };
 
     private getAreaFills = (): AreaFills => {
@@ -353,6 +350,10 @@ export class PlagueTurnState extends BaseAppState<State> {
         if (movements.length > 0) {
             if (!doubleMovement) return false;
             return movements.length < 2;
+        }
+
+        if (turn.inSiege) {
+            return false;
         }
 
         return true;

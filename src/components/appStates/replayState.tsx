@@ -1,214 +1,99 @@
 import { BaseAppState, RouteProps } from './appState';
 import { UiProps } from '../hud/uiScreen';
-import { ActionType, serializer } from '../../turnTracking/turnsSerializer';
 import Button from '../hud/button/button';
 import React from 'react';
-import { areaKeys, steppe } from '../../data/areas';
-import { AreaFill, AreaFills, AreaToken } from '../../model';
-import { locationToAreaKey, locationToAreaKeys } from '../../utils';
+import { areaKeys } from '../../data/areas';
+import { AreaFills, AreaToken } from '../../model';
+import { locationToAreaKeys } from '../../utils';
 import { strings } from '../locale/strings';
-import connections from '../../data/connections.json';
-import { allCharacters, Character, characters } from '../../data/characters';
+import { allCharacters } from '../../data/characters';
 import { ModalController, NullModalController } from '../hud/modal/modalController';
 import { KilledCharactersModalController } from '../hud/modal/killedCharactersModalController';
-import { GameAction, TurnState } from '../../model/actions';
-
-export interface RecordedGame {
-    turns: RecordedTurn[];
-    initialLocation: number;
-    serializationVer: number;
-}
-
-export interface RecordedTurn {
-    turnNo: number;
-    inSiege: number;
-    actions: (GameAction | InitialTurnActionDescriptor)[];
-}
+import { controlActionTypes, GameAction } from '../../model/actions';
+import { ActionSnapshot } from '../../core/gameEngine';
+import { gameActionReducer } from '../../core/gameActionReducer';
+import _ from 'lodash';
+import { inDebug } from '../../debug';
 
 interface State {
-    location: number;
-    visitedLocations: number[];
-    inSiege: number;
-    msg: string;
     modal: ModalController | null;
 }
 
-type RecordedTurnDescriptor = {
-    type: ActionType,
-    location: number,
-    descriptor: GameAction
-} | {
-    type: 'initial',
-    location: number
-}
+const isControl = (s: ActionSnapshot) => controlActionTypes.includes(s.action.type);
+const notControl = (s: ActionSnapshot) => !isControl(s);
 
-function processTurns(game: RecordedGame) {
-    let turns: RecordedTurnDescriptor[] = [{
-        type: 'initial',
-        location: game.initialLocation
-    }];
+let debugState = {
+    currentAction: ''
+};
+inDebug((gui) => {
+    const folder = gui.addFolder('replay');
+    folder.add(debugState, 'currentAction').listen();
+    folder.open();
+});
 
-    let currentLocation = game.initialLocation;
-    for (let t of game.turns) {
-        turns.push({
-            type:
-        })
+class ActionsIterator {
+    index = 0;
+    private actions: ActionSnapshot[] = [];
+
+    constructor(gameActions: GameAction[]) {
+        for (let gAction of gameActions) {
+            this.actions = gameActionReducer(this.actions, gAction, _.last(this.actions)!)
+        }
     }
-}
 
-class TurnsIterator {
-    currentTurn = 0;
-    currentAction = 0;
-
-    turns: RecordedTurn[];
-
-    constructor(game: RecordedGame) {
-        this.turns = [...game.turns];
-        this.turns[0].actions = [{ type: 'start', location: game.initialLocation } ,...this.turns[0].actions];
-    }
+    precedingInSameTurn = () => {
+        const actions = this.actions.slice(0, this.index + 1);
+        return _.takeRightWhile(actions, a =>
+            a.action.type !== 'end-healers-turn'
+        )
+    };
 
     havePrev = () => {
-        if (this.currentTurn > 0) return true;
-        if (this.currentAction > 0) return true;
-        return false;
+        return this.actions.slice(0, this.index).some(a => notControl(a) || a.action.type === 'start');
     };
 
     haveNext = () => {
-        if (this.turns.length > this.currentTurn + 1) return true;
-        const turn = this.turns[this.currentTurn];
-        if (turn.actions.length > this.currentAction + 1) return true;
-        return false;
+        return this.actions.slice(this.index + 1).some(notControl);
     };
 
     current = () => {
-        return this.turns[this.currentTurn].actions[this.currentAction];
-    }
+        return this.actions[this.index];
+    };
 
     moveNext = () => {
-        const turn = this.turns[this.currentTurn];
         if (!this.haveNext()) {
             return this.current();
         }
-        if (turn.actions.length > this.currentAction + 1) {
-            return turn.actions[++this.currentAction];
-        }
-        return this.turns[++this.currentTurn].actions[this.currentAction = 0];
+        return this.actions[++this.index];
     };
 
     movePrev = () => {
-        const turn = this.turns[this.currentTurn];
         if (!this.havePrev()) {
             return this.current();
         }
-        if (this.currentAction > 0) {
-            return turn.actions[--this.currentAction];
-        }
-        const prevTurn = this.turns[--this.currentTurn];
-        return prevTurn.actions[this.currentAction = prevTurn.actions.length - 1];
+        return this.actions[--this.index];
     }
-}
-
-interface InitialTurnActionDescriptor {
-    type: 'start',
-    location: number;
 }
 
 export class ReplayState extends BaseAppState<State> {
 
-    iterator: TurnsIterator;
+    iterator: ActionsIterator;
     isPlaying = false;
 
-    constructor(routeProps: RouteProps, private game: RecordedGame) {
+    constructor(routeProps: RouteProps, private actions: GameAction[]) {
         super(routeProps, {
-            location: game.initialLocation,
-            visitedLocations: [],
-            inSiege: -1,
-            msg: strings.startOfGame(),
             modal: NullModalController
         });
-        console.log(game);
-        this.iterator = new TurnsIterator(game);
+        this.iterator = new ActionsIterator(actions);
     }
 
-    playNext = () => {
-        this.playAction(this.iterator.moveNext());
-    };
-
-    playPrev = () => this.playAction(this.iterator.movePrev());
-
-    getContaminationMsg = (characters: Character[]) => {
-        if (characters.length > 1) {
-            return strings.multipleCharacterKilled({ characters: characters.map(c => c.name).join(', ') });
-        }
-
-        const char = characters[0];
-        if (char.gender === 0) {
-            return strings.characterWoKilled({ char: char.name });
-        } else {
-            return strings.characterMaKilled({ char: char.name });
-        }
-    };
-
-    playAction = (action: GameAction | InitialTurnActionDescriptor) => {
-        switch (action.type) {
-            case 'start':
-                this.setState({
-                    location: this.game.initialLocation,
-                    inSiege: -1,
-                    visitedLocations: [],
-                    msg: strings.startOfGame(),
-                    modal: NullModalController
-                });
-                return;
-
-            case 'movement':
-                this.setState({
-                    location: action.to,
-                    inSiege: -1,
-                    visitedLocations: [...this.state.visitedLocations, this.state.location],
-                    msg: strings.movementToLocation({ locationNo: action.to, location: connections[action.to].name }),
-                    modal: NullModalController
-                });
-                return;
-
-            case 'contaminate':
-                const chars = action.affected.map(id => allCharacters.find(c => c.id === id)!);
-                this.setState({
-                    inSiege: -1,
-                    msg: this.getContaminationMsg(chars),
-                    modal: chars.length > 0 ? new KilledCharactersModalController(chars) : NullModalController
-                });
-                return;
-
-            case 'siege-start':
-                const ssChars = action.affected.map(id => allCharacters.find(c => c.id === id)!);
-                this.setState({
-                    inSiege: this.state.location,
-                    msg: ssChars.length > 0
-                        ? strings.siegeStartedKilled({ killed: this.getContaminationMsg(ssChars) })
-                        : strings.siegeStarted()
-                    ,
-                    modal: ssChars.length > 0 ? new KilledCharactersModalController(ssChars) : NullModalController
-                });
-                return;
-
-            case 'siege-end':
-                const seChars = action.affected.map(id => allCharacters.find(c => c.id === id)!);
-                this.setState({
-                    inSiege: -1,
-                    msg: seChars.length > 0
-                        ? strings.siegeEndedKilled({ killed: this.getContaminationMsg(seChars) })
-                        : strings.siegeEndSuccessfully(),
-                    modal: seChars.length > 0 ? new KilledCharactersModalController(seChars) : NullModalController
-                });
-                return;
-        }
-    };
-
     renderProps(): UiProps {
+        const { world, action } = this.iterator.current();
+        inDebug(() => debugState.currentAction = action.type );
+
         return {
-            mainMsg: strings.turnNo({ turn: this.iterator.currentTurn + 1}),
-            msg: this.state.msg,
+            mainMsg: strings.turnNo({ turn: world.turnNo }),
+            msg: world.statusMsg,
             bottomButtons: () => <>
                 <Button iconHref={'icons/prev.png'} unpressableInnactive={true} isActive={this.iterator.havePrev()} onClick={this.playPrev} />
                 <Button iconHref={'icons/pause.png'} onClick={this.playNext} />
@@ -222,33 +107,77 @@ export class ReplayState extends BaseAppState<State> {
         };
     }
 
+    playNext = () => {
+        this.playAction(this.iterator.moveNext());
+    };
+
+    playPrev = () => this.playAction(this.iterator.movePrev());
+
+    playAction = (snapshot: ActionSnapshot) => {
+        const { action } = snapshot;
+        switch (action.type) {
+            case 'contaminate':
+                const chars = action.affected.map(id => allCharacters.find(c => c.id === id)!);
+                this.setState({
+                    modal: chars.length > 0 ? new KilledCharactersModalController(chars) : NullModalController
+                });
+                break;
+
+            case 'siege-start':
+                const ssChars = action.affected.map(id => allCharacters.find(c => c.id === id)!);
+                this.setState({
+                    modal: ssChars.length > 0 ? new KilledCharactersModalController(ssChars) : NullModalController
+                });
+                break;
+
+            case 'siege-end':
+                const seChars = action.affected.map(id => allCharacters.find(c => c.id === id)!);
+                this.setState({
+                    modal: seChars.length > 0 ? new KilledCharactersModalController(seChars) : NullModalController
+                });
+                break;
+
+            case 'healers-m12':
+                // TODO: card animation
+                this.setState({
+                    modal: NullModalController,
+                });
+                break;
+
+            default:
+                this.setState({
+                    modal: NullModalController,
+                });
+                break;
+        }
+        this.update();
+    };
+
     getFills = () => {
         const fills = Object.fromEntries(areaKeys.map(key => ([key, 'available']))) as AreaFills;
-        this.state.visitedLocations.forEach(l => this.setLocationFill(fills, l, 'passed-available'));
-        this.setLocationFill(fills, this.state.location, 'active');
+
+        const { world } = this.iterator.current();
+        const preceding = this.iterator.precedingInSameTurn();
+
+        preceding.forEach(p => locationToAreaKeys(p.world.plagueLocation).forEach(a => fills[a] = 'passed-available'));
+        locationToAreaKeys(world.initialLocation).forEach(a => fills[a] = 'passed-available');
+        locationToAreaKeys(world.plagueLocation).forEach(a => fills[a] = 'active');
 
         return fills;
     };
 
-    setLocationFill = (fills: AreaFills, location: number, fill: AreaFill) => {
-        const key = locationToAreaKey(location);
-        if (steppe.includes(key)) {
-            steppe.forEach(k => fills[k] = fill);
-        } else {
-            fills[key] = fill;
-        }
-    }
-
     getTokens = (): AreaToken[] => {
-        if (this.state.inSiege > -1) {
-            const keys = locationToAreaKeys(this.state.inSiege);
+        const { world } = this.iterator.current();
+
+        if (world.inSiege) {
+            const keys = locationToAreaKeys(world.inSiege);
             return keys.map(k => ({
                 areaKey: k,
                 token: 'siege'
             }));
         }
         return [];
-    }
+    };
 
     togglePlay = () => {
 

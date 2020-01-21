@@ -1,48 +1,26 @@
-import {
-    ContaminationAction,
-    GameAction, GameActionType,
-    MovementsAction,
-    SiegeEndAction,
-    SiegeStartAction,
-    TurnState
-} from '../model/actions';
+import { controlActionTypes, GameAction } from '../model/actions';
 import { strings } from '../components/locale/strings';
 import { allCharacters, Character } from '../data/characters';
 import connections from '../data/connections.json';
+import _ from 'lodash';
+import { PersistenceService } from './persistenceService';
+import { gameActionReducer } from './gameActionReducer';
 
-interface ActionOutput {
-    msg: string;
-}
-
-interface WorldState {
+export interface WorldState {
     inSiege: number | null,
     initialLocation: number,
     plagueLocation: number,
     turnNo: number,
     doubleMovement: boolean,
-    msg?: string
+    statusMsg?: string
 }
 
-interface ActionSnapshot {
+export interface ActionSnapshot {
     action: GameAction;
     world: WorldState;
 }
 
-/*
-api:
-    pushAction(action): GameSnapshot
-    popAction(): GameSnapshot
-    getTurnActions(): GameAction[]
-
-model:
-    WorldState
-        inSiege
-        initialLocation
-        doubleMovement
-        plagueLocation
- */
-
-const formatter = new class Formatter {
+export const formatter = new class Formatter {
     affectedString(affected: Character[]) {
         if (affected.length > 1) {
             return strings.multipleCharacterKilled({ characters: affected.map(c => c.name).join(', ') });
@@ -54,10 +32,37 @@ const formatter = new class Formatter {
         return strings.characterMaKilled({ char: char.name });
     }
 
-    getMsg(action: GameAction) {
+    getActionName(action: GameAction) {
         switch (action.type) {
             case 'start':
-                return '';
+                return strings.startOfGame();
+            case 'end-plague-turn':
+                return strings.turnEnd();
+            case 'end-healers-turn':
+                return strings.turnEnd();
+            case 'movement':
+                return this.getStatusMsg(action);
+            case 'contaminate':
+                return strings.contaminate();
+            case 'siege-start':
+                return strings.siegeStarted();
+            case 'siege-end':
+                return strings.siegeEndSuccessfully();
+            case 'healers-m12':
+                if (action.active) {
+                    return strings.activatedEffect({ effect: strings.effectm12() });
+                } else {
+                    return strings.canceledEffect({ effect: strings.effectm12() });
+                }
+            case 'healers-s-plus-movement':
+                return strings.effectsPlusMovement();
+        }
+    }
+
+    getStatusMsg(action: GameAction, state?: WorldState, lastState?: WorldState) {
+        switch (action.type) {
+            case 'start':
+                return strings.startOfGame();
             case 'contaminate': {
                 const affected = allCharacters.filter(c => action.affected.includes(c.id));
                 return this.affectedString(affected);
@@ -77,109 +82,74 @@ const formatter = new class Formatter {
             case 'movement': {
                 return strings.movementToLocation({ locationNo: action.to, location: connections[action.to].name })
             }
+            case 'end-plague-turn': {
+                return strings.turnEnd();
+            }
+            case 'end-healers-turn':
+                return strings.startOfTurn();
         }
     }
 }();
 
+interface Props {
+    persistenceService?: PersistenceService,
+    actions?: ActionSnapshot[]
+}
+
 export class GameEngine {
 
-    private actions: ActionSnapshot[] = [];
+    private actions: ActionSnapshot[];
+    private readonly persistenceService: PersistenceService;
 
-    lastActionSnapshot = () => this.actions[this.actions.length - 1];
+    constructor(props?: Props) {
+        (window as any).game = this;
+        this.persistenceService = props?.persistenceService ?? new PersistenceService();
+        this.actions = props?.actions ?? [];
+    }
+
+    lastActionSnapshot = () => _.last(this.actions)!;
 
     state = () => this.lastActionSnapshot().world;
 
     lastAction = () => this.lastActionSnapshot().action;
 
     pushAction(action: GameAction): WorldState {
-        const last = this.lastActionSnapshot();
-
-        switch (action.type) {
-            case 'start': {
-                const world: WorldState = {
-                    doubleMovement: false,
-                    initialLocation: action.location,
-                    plagueLocation: action.location,
-                    inSiege: null,
-                    turnNo: 1
-                };
-                this.actions.push({ action, world });
-                return world;
-            }
-
-            case 'contaminate': {
-                const world: WorldState = {
-                    ...last.world,
-                    msg: formatter.getMsg(action)
-                };
-                this.actions.push({ action, world });
-                return world;
-            }
-
-            case 'movement': {
-                const world: WorldState = {
-                    ...last.world,
-                    plagueLocation: action.to,
-                    msg: formatter.getMsg(action)
-                };
-                this.actions.push({ action, world });
-                return world;
-            }
-
-            case 'siege-start': {
-                const world: WorldState = {
-                    ...last.world,
-                    inSiege: last.world.plagueLocation,
-                    msg: formatter.getMsg(action)
-                };
-                this.actions.push({ action, world });
-                return world;
-            }
-
-            case 'siege-end': {
-                const world: WorldState = {
-                    ...last.world,
-                    inSiege: null,
-                    msg: formatter.getMsg(action)
-                };
-                this.actions.push({ action, world });
-                return world;
-            }
-
-            case 'end-plague-turn':
-                const world: WorldState = {
-                    ...last.world,
-                    inSiege: null,
-                    // TODO: msg
-                };
-                this.actions.push({ action, world });
-                return world;
-
-            default:
-                console.error('unknown action', action);
-                return last.world;
-        }
-        // TODO: add action saving
-    }
-
-    popAction(): WorldState {
-        this.actions.pop();
+        console.log('pushed', action);
+        this.actions = gameActionReducer(this.actions, action, this.lastActionSnapshot());
+        this.persistenceService.writeAll(this.actions);
         return this.lastActionSnapshot().world;
     }
 
-    getTurnActions = (type?: GameActionType) => {
+    popAction() {
+        const popped = this.actions.pop();
+        this.persistenceService.writeAll(this.actions);
+        return popped;
+    }
+
+    getTurnActions = () => {
         let acc: GameAction[] = [];
-        let turnNo = this.state().turnNo;
-        for (let i = this.actions.length - 1; i >= 0; i++) {
-            if (turnNo === this.actions[i].world.turnNo) {
-                acc.unshift(this.actions[i].action);
+        for (let i = this.actions.length - 1; i >= 0; i--) {
+            const snapshot = this.actions[i];
+            if (!controlActionTypes.includes(snapshot.action.type)) {
+                acc.unshift(snapshot.action);
             } else {
                 break;
             }
         }
-        if (type) {
-            return acc.filter(a => a.type === type);
-        }
         return acc;
+    }
+
+    isPlagueTurn = () => {
+        const act = _.findLast(this.actions, a => controlActionTypes.includes(a.action.type));
+        if (!act) return true;
+        const type = act.action.type;
+        if (type === 'start' || type === 'end-healers-turn') {
+            return true;
+        }
+        if (type === 'end-plague-turn') {
+            return false;
+        }
+
+        return true;
     }
 }

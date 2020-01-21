@@ -5,34 +5,19 @@ import { strings } from '../locale/strings';
 import { PlayerEffectModalController } from '../hud/modal/selectPlayerEffect/playerEffectModalController';
 import Button from '../hud/button/button';
 import React from 'react';
-import { PlayerEffectItem } from '../hud/modal/selectPlayerEffect/playerEffectModalContent';
 import { SelectBonusMovementLocationState } from './selectBonusMovementLocationState';
-import { PlagueAction} from './plagueTurnState';
-import connections from '../../data/connections.json';
-import { GameAction, TurnState } from '../../model/actions';
-import { GameEngine } from '../../core/gameEngine';
+import { HealersActions } from '../../model/actions';
+import { formatter, GameEngine } from '../../core/gameEngine';
+import { PlayerEffectItem } from '../../data/healersEffects';
 
 interface Props {
     mapSnapshot: MapSnapshot;
     game: GameEngine;
-    currentLocation: number;
-    onHealersTurnEnd: () => void
-}
-
-interface Action {
-    item: PlayerEffectItem;
-    prevLocation: number;
-    nextLocation?: number;
-    mapSnapshot: MapSnapshot;
-    turn: TurnState;
 }
 
 interface State {
-    actions: Action[];
     mapSnapshot: MapSnapshot;
     selectedItem: PlayerEffectItem | null;
-    currentLocation: number;
-    turn: TurnState;
 }
 
 export class HealersTurnState extends BaseAppState<State> {
@@ -42,16 +27,13 @@ export class HealersTurnState extends BaseAppState<State> {
     constructor(routeProps: RouteProps, private props: Props) {
         super(routeProps, {
             selectedItem: null,
-            actions: [],
-            currentLocation: props.currentLocation,
-            mapSnapshot: props.mapSnapshot,
-            turn: { ...props.turn }
+            mapSnapshot: props.mapSnapshot
         });
         this.modal = new PlayerEffectModalController(this.itemSelected);
     }
 
     renderProps(): UiProps {
-        this.modal.activeEffects = this.state.turn.doubleMovement ? ['m-12'] : [];
+        this.modal.activeEffects = this.props.game.state().doubleMovement ? ['m-12'] : [];
 
         return {
             mainMsg: strings.healersTurn(),
@@ -59,7 +41,12 @@ export class HealersTurnState extends BaseAppState<State> {
             mapSnapshot: this.state.mapSnapshot,
             modalController: this.modal,
             bottomButtons: this.renderBottomButtons,
-            onMapBottomButtons: () => <Button isVisible={ !!this.state.actions.length }
+            onMapBottomButtons: () => <Button isVisible={ !!this.props.game.getTurnActions().length }
+                                              tooltip={ {
+                                                  direction: 'top',
+                                                  tooltipHint: strings.cancelSpecificAction({ action: formatter.getActionName(this.props.game.lastAction()) }),
+                                                  id: 'undo-tooltip'
+                                              }}
                                               iconHref={ 'icons/undo_button.png' } onClick={ this.onUndo }/>
         }
     }
@@ -69,13 +56,13 @@ export class HealersTurnState extends BaseAppState<State> {
     renderBottomButtons = () => {
         const { selectedItem } = this.state;
         const isDoubleMovementButton = selectedItem?.id === 'm-12';
-        const isAdd = !isDoubleMovementButton || this.state.turn.doubleMovement;
+        const isApply = !isDoubleMovementButton || !this.props.game.state().doubleMovement;
         return <>
-            <Button iconHref={ isAdd ? 'icons/checkmark.png' : 'icons/cross.png' }
+            <Button iconHref={ isApply ? 'icons/checkmark.png' : 'icons/cross.png' }
                     isActive={ !!selectedItem }
                     tooltip={ {
                         id: 't-apply',
-                        tooltipHint: isAdd ? strings.apply() : strings.disable(),
+                        tooltipHint: isApply ? strings.apply() : strings.disable(),
                         direction: 'top'
                     } }
                     onClick={ this.activateItem }/>
@@ -91,84 +78,55 @@ export class HealersTurnState extends BaseAppState<State> {
 
     activateItem = () => {
         const item = this.state.selectedItem!;
+        const game = this.props.game;
+        const gameState = game.state();
 
         switch (item.id) {
             case 'm-12':
-                this.setState({
-                    actions: [...this.state.actions, {
-                        item,
-                        turn: { ...this.state.turn },
-                        prevLocation: this.state.currentLocation,
-                        mapSnapshot: this.state.mapSnapshot
-                    }],
-                    turn: { ...this.state.turn, doubleMovement: !this.state.turn.doubleMovement }
+                const active = !gameState.doubleMovement;
+                game.pushAction({
+                    type: 'healers-m12',
+                    active
                 });
-                if (this.state.turn.doubleMovement) {
+                if (active) {
                     this.routeProps.pushMessage(strings.activatedEffect({ effect: item.name }));
                 } else {
                     this.routeProps.pushMessage(strings.canceledEffect({ effect: item.name }));
                 }
+                this.update();
                 return;
 
             case 's-plus-movement':
-                this.routeProps.pushState(new SelectBonusMovementLocationState(this.routeProps, {
-                    onLocationSelected: (location, mapSnapshot) => {
-                        this.setState({
-                            actions: [...this.state.actions, {
-                                item,
-                                prevLocation: this.state.currentLocation,
-                                turn: { ...this.state.turn },
-                                mapSnapshot: this.state.mapSnapshot,
-                                nextLocation: location
-                            }],
-                            turn: {
-                                ...this.state.turn,
-                                inSiege: -1
-                            },
-                            mapSnapshot,
-                            currentLocation: location
-                        });
-
-                        this.routeProps.pushMessage(strings.movementToLocation({
-                            locationNo: location,
-                            location: connections[location].name
-                        }));
-                    },
-                    initialLocation: this.props.currentLocation,
-                    inSiege: this.props.turn.inSiege
-                }));
+                this.routeProps.pushState(new SelectBonusMovementLocationState(this.routeProps, game));
                 return;
         }
     };
 
     onUndo = () => {
-        if (!this.state.actions.length) return;
+        const { game } = this.props;
+        const actions = game.getTurnActions();
+        if (!actions.length) return;
+        const action = game.popAction()!.action as HealersActions;
+        this.routeProps.pushMessage(this.getCanceledActionStr(action));
+    };
 
-        const action = this.state.actions.splice(-1, 1)[0];
-        this.setState({
-            actions: [...this.state.actions],
-            currentLocation: action.prevLocation,
-            turn: action.turn,
-            selectedItem: this.state.selectedItem,
-            mapSnapshot: action.mapSnapshot
-        });
-        this.routeProps.pushMessage(strings.canceledEffect({ effect: action.item.name }));
+    getCanceledActionStr = (action: HealersActions) => {
+        switch (action.type) {
+            case 'healers-m12':
+                if (action.active) {
+                    return strings.canceledEffect({ effect: strings.effectm12() });
+                } else {
+                    return strings.effectm12();
+                }
+            case 'healers-s-plus-movement':
+                return strings.canceledEffect({ effect: strings.effectsPlusMovement() });
+        }
     };
 
     onDone = () => {
-        this.state.turn.turnActions.push(...this.state.actions.filter(a => a.item.id === 's-plus-movement')
-            .map(a => ({
-                descriptor: {
-                    type: 'movement',
-                    to: a.nextLocation!
-                },
-                snapshot: this.state.turn,
-                msg: strings.movementToLocation({
-                    location: connections[a.nextLocation!].name,
-                    locationNo: a.nextLocation
-                })
-            } as PlagueAction<GameAction>)));
-        this.props.onHealersTurnEnd(this.state.currentLocation, this.state.turn);
+        this.props.game.pushAction({
+            type: 'end-healers-turn'
+        });
         this.routeProps.popState();
     }
 }

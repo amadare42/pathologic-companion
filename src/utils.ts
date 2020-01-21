@@ -1,4 +1,4 @@
-import { AreaFill, Point, Rectangle } from './model';
+import { AreaFill, AreaFills, Point, Rectangle } from './model';
 import { AreaKey, steppe } from './data/areas';
 import connections from './data/connections.json';
 
@@ -99,8 +99,6 @@ export const locationToAreaKeys = (location: number): AreaKey[] => {
     }
     return [locationToAreaKey(location)];
 };
-
-export const resolveOnCb = (cb: any) => new Promise(r => cb ? cb(r) : r());
 
 export const pointsEq = (point1: Point, point2: Point) => point1.x === point2.x && point1.y === point2.y;
 

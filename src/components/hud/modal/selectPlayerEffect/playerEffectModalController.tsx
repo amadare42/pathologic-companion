@@ -1,7 +1,8 @@
 import BackgroundAnimation from '../crowsAnimation';
 import React from 'react';
 import { ModalController, ModalProps } from '../modalController';
-import PlayerEffectModalContent, { PlayerEffectItem } from './playerEffectModalContent';
+import PlayerEffectModalContent from './playerEffectModalContent';
+import { PlayerEffectItem } from '../../../../data/healersEffects';
 
 export class PlayerEffectModalController implements ModalController {
 
