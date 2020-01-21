@@ -60,8 +60,13 @@ class StateRouter extends Component<{}, State> {
         pushState: this.pushState,
         popState: this.popState,
         update: this.update,
-        pushMessage: this.pushMsg
+        pushMessage: this.pushMsg,
+        removeMsg: this.removeMsg
     });
+
+    removeMsg = () => {
+        this.setState( { transientMessage: null });
+    }
 
     pushMsg = (msg: string, timeout: number = 3000) => {
         const transientMessage = { text: msg };

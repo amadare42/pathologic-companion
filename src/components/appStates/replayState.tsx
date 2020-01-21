@@ -10,10 +10,17 @@ import { allCharacters } from '../../data/characters';
 import { ModalController, NullModalController } from '../hud/modal/modalController';
 import { KilledCharactersModalController } from '../hud/modal/killedCharactersModalController';
 import { controlActionTypes, GameAction } from '../../model/actions';
-import { ActionSnapshot } from '../../core/gameEngine';
+import { ActionSnapshot, formatter } from '../../core/gameEngine';
 import { gameActionReducer } from '../../core/gameActionReducer';
 import _ from 'lodash';
 import { inDebug } from '../../debug';
+import { PageSizes } from '../theme/createTheme';
+import Slider, { Handle, Range } from 'rc-slider';
+import 'rc-slider/assets/index.css';
+import 'rc-tooltip/assets/bootstrap.css';
+import { calcCss } from '../../utils/sizeCss';
+import ReactTooltip from 'react-tooltip';
+import { COLORS } from '../mapView/animationConstants';
 
 interface State {
     modal: ModalController | null;
@@ -33,7 +40,7 @@ inDebug((gui) => {
 
 class ActionsIterator {
     index = 0;
-    private actions: ActionSnapshot[] = [];
+    actions: ActionSnapshot[] = [];
 
     constructor(gameActions: GameAction[]) {
         for (let gAction of gameActions) {
@@ -49,7 +56,8 @@ class ActionsIterator {
     };
 
     havePrev = () => {
-        return this.actions.slice(0, this.index).some(a => notControl(a) || a.action.type === 'start');
+        return this.index > 0;
+        // return this.actions.slice(0, this.index).some(a => notControl(a) || a.action.type === 'start');
     };
 
     haveNext = () => {
@@ -85,27 +93,81 @@ export class ReplayState extends BaseAppState<State> {
             modal: NullModalController
         });
         this.iterator = new ActionsIterator(actions);
+        console.log(this.iterator.actions);
     }
 
     renderProps(): UiProps {
         const { world, action } = this.iterator.current();
-        inDebug(() => debugState.currentAction = action.type );
+        inDebug(() => debugState.currentAction = action.type);
 
         return {
             mainMsg: strings.turnNo({ turn: world.turnNo }),
             msg: world.statusMsg,
             bottomButtons: () => <>
-                <Button iconHref={'icons/prev.png'} unpressableInnactive={true} isActive={this.iterator.havePrev()} onClick={this.playPrev} />
-                <Button iconHref={'icons/pause.png'} onClick={this.playNext} />
-                <Button iconHref={'icons/next.png'} unpressableInnactive={true} isActive={this.iterator.haveNext()} onClick={this.playNext} />
+                <Button iconHref={ 'icons/prev.png' } unpressableInnactive={ true }
+                        isActive={ this.iterator.havePrev() } onClick={ this.playPrev }/>
+                <Button iconHref={ 'icons/pause.png' } onClick={ this.playNext }/>
+                <Button iconHref={ 'icons/next.png' } unpressableInnactive={ true }
+                        isActive={ this.iterator.haveNext() } onClick={ this.playNext }/>
             </>,
             modalController: this.state.modal,
             mapSnapshot: {
                 fills: this.getFills(),
                 tokens: this.getTokens()
-            }
+            },
+            onMapTopButtons: () => <Button iconHref={ 'icons/double_movement.png' }
+                                           isVisible={ world.doubleMovement }
+                                           tooltip={ {
+                                               id: 'd-dmov',
+                                               tooltipHint: strings.doubleMovement(),
+                                               direction: 'left'
+                                           } }/>,
+            customComponent: this.renderSlider
         };
     }
+
+    renderSlider = (pageSizes: PageSizes) => {
+        const margin = calcCss(pageSizes.viewport, 10, 'vw');
+        const width = pageSizes.viewport.width - margin * 2;
+        const scale = window.devicePixelRatio * 2;
+
+        let marks = {} as any;
+
+        this.iterator.actions.forEach((a, i) => {
+            if (a.action.type == 'end-healers-turn') {
+                marks[i] = a.world.turnNo;
+            }
+        });
+
+        return <div style={ {
+            position: 'absolute',
+            width: width / scale,
+            left: (pageSizes.viewport.width - width / scale) / 2,
+            height: 50,
+            bottom: pageSizes.bottom,
+            zIndex: 999999999999,
+            transform: `scale(${scale})`
+        } }>
+            <Slider min={ 0 }
+                    max={ this.iterator.actions.length - 1 }
+                    value={ this.iterator.index }
+                    onChange={ v => {
+                        this.iterator.index = v;
+                        this.update();
+                    } }
+                    trackStyle={{
+                        backgroundColor: '#811000'
+                    }}
+                    handleStyle={{
+                        border: 'solid 2px #811000'
+                    }}
+                    activeDotStyle={{
+                        borderColor: '#811000'
+                    }}
+                    marks={marks}
+            />
+        </div>
+    };
 
     playNext = () => {
         this.playAction(this.iterator.moveNext());
@@ -115,6 +177,7 @@ export class ReplayState extends BaseAppState<State> {
 
     playAction = (snapshot: ActionSnapshot) => {
         const { action } = snapshot;
+
         switch (action.type) {
             case 'contaminate':
                 const chars = action.affected.map(id => allCharacters.find(c => c.id === id)!);
@@ -138,7 +201,6 @@ export class ReplayState extends BaseAppState<State> {
                 break;
 
             case 'healers-m12':
-                // TODO: card animation
                 this.setState({
                     modal: NullModalController,
                 });

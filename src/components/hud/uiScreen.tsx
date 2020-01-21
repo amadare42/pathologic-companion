@@ -23,6 +23,8 @@ export interface UiProps {
 
     onAreaClick?: (key: AreaKey) => void;
     modalController?: ModalController | null;
+
+    customComponent?: (pageSizes: PageSizes) => React.ReactNode | void;
 }
 
 class UiScreen extends Component<UiProps> {
@@ -39,6 +41,7 @@ class UiScreen extends Component<UiProps> {
                             { modal.renderModal() }
                             { this.renderBottomPanel(theme.pageSizes) }
                             { this.renderOnMapTopButtons(theme.pageSizes) }
+                            { this.props.customComponent?.(theme.pageSizes) || undefined }
                         </>)
                     }
                 </MixedMediaModal>

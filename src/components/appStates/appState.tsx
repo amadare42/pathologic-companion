@@ -24,6 +24,7 @@ export interface RouteProps {
     update: () => void;
 
     pushMessage: (msg: string, timeout?: number) => void;
+    removeMsg: () => void;
 }
 
 export interface AppStateMessage {

@@ -63,7 +63,8 @@ export const gameActionReducer = (actions: ActionSnapshot[], action: GameAction,
         case 'healers-m12': {
             const world: WorldState = {
                 ...last.world,
-                doubleMovement: action.active
+                doubleMovement: action.active,
+                statusMsg: formatter.getActionName(action)
             };
             const lastSnap = _.last(actions);
             if (lastSnap && lastSnap.action.type === action.type) {
@@ -77,10 +78,12 @@ export const gameActionReducer = (actions: ActionSnapshot[], action: GameAction,
         }
 
         case 'healers-s-plus-movement': {
+            const moved = action.to != last.world.plagueLocation;
             const world: WorldState = {
                 ...last.world,
                 plagueLocation: action.to,
-                inSiege: action.to === last.world.plagueLocation ? last.world.inSiege : null
+                inSiege: moved ? null : last.world.inSiege,
+                statusMsg: formatter.getStatusMsg(action)
             };
             return [...actions, { action, world }];
         }

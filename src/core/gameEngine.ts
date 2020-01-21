@@ -57,9 +57,10 @@ export const formatter = new class Formatter {
             case 'healers-s-plus-movement':
                 return strings.effectsPlusMovement();
         }
+        return '';
     }
 
-    getStatusMsg(action: GameAction, state?: WorldState, lastState?: WorldState) {
+    getStatusMsg(action: GameAction) {
         switch (action.type) {
             case 'start':
                 return strings.startOfGame();
@@ -79,7 +80,8 @@ export const formatter = new class Formatter {
                     ? strings.siegeEndedKilled({ killed: this.affectedString(affected) })
                     : strings.siegeEndSuccessfully()
             }
-            case 'movement': {
+            case 'movement':
+            case 'healers-s-plus-movement': {
                 return strings.movementToLocation({ locationNo: action.to, location: connections[action.to].name })
             }
             case 'end-plague-turn': {
