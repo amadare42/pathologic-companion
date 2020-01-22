@@ -4,7 +4,7 @@ import { AreaKey } from '../../../data/areas';
 import { Container, withPixiApp } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
 import { RawDisplayObj } from '../pixiUtils/rawDisplayObj';
-import AreaSpriteFill from './areaSpriteFiller';
+import AreaSpriteFill from './areaSpriteFill';
 import { AreaFill, AreaTokenType } from '../../../model';
 import { AreaOverlay } from './areaOverlay';
 import { SiegeToken } from '../tokens/siegeToken';
@@ -16,6 +16,7 @@ interface Props {
     tokens: AreaTokenType[];
     onClick?: (key: AreaKey) => void;
     app: PIXI.Application;
+    pixiRef?: (obj: PIXI.DisplayObject) => void;
 }
 
 class AreaView extends React.Component<Props> {
@@ -31,14 +32,15 @@ class AreaView extends React.Component<Props> {
 
     render = () => {
         const { area, fill, resources } = this.props;
-        const { bbox } = area;
+        const { bbox, key } = area;
 
-        return <Container { ...bbox }>
+        return <Container { ...bbox } >
             <AreaOverlay area={ area } visible={ fill === 'disabled' || fill === 'passed' } app={ this.props.app }/>
             <Container mask={ this.maskSprite } name={ 'area_sprite_container_' + area.key }>
-                <RawDisplayObj obj={ this.maskSprite }/>
+                <RawDisplayObj obj={ this.maskSprite } ref={this.props.pixiRef as any}/>
                 <AreaSpriteFill fill={ fill }
                                 bbox={ bbox }
+                                areaKey={ key }
                                 resources={ resources }
                                 sizeMult={ this.getSizeMult(area.key) }
                 />

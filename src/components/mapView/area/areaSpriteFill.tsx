@@ -7,14 +7,26 @@ import { withPixiApp } from '@inlet/react-pixi';
 import { RafTicker, RafTimestamp } from '../pixiUtils/rafTicker';
 import { AREA, COLORS } from '../animationConstants';
 import { Resources } from '../loadResources';
+import { inDebug } from '../../../debug';
+import { AreaKey, areaKeys } from '../../../data/areas';
 
 interface Props {
+    areaKey: AreaKey;
     fill: AreaFill;
     bbox: BBox;
     sizeMult: number;
     app: PIXI.Application;
     resources: Resources;
 }
+
+let debug_obj = Object.fromEntries(areaKeys.map(key => ([key, 'disabled'])))
+
+inDebug(gui => {
+    const folder = gui.addFolder('Area fills');
+    Object.keys(debug_obj).forEach(k => {
+        folder.add(debug_obj, k).listen();
+    })
+});
 
 class AreaSpriteFill extends React.Component<Props, any> {
     private container: PIXI.Container;
@@ -24,6 +36,9 @@ class AreaSpriteFill extends React.Component<Props, any> {
     private ticker: RafTicker;
 
     private fadingMod: number = 1;
+    private maxAlpha: number = 1;
+    private minAlpha: number = 0;
+    private skipDelay: boolean = false;
 
     constructor(props: Props) {
         super(props);
@@ -95,7 +110,7 @@ class AreaSpriteFill extends React.Component<Props, any> {
             this.transitToFill(nextProps.fill, this.props.fill);
         }
 
-        return false;
+        return true;
     }
 
     transitToFill = (fill: AreaFill, prevFill?: AreaFill) => {
@@ -114,24 +129,41 @@ class AreaSpriteFill extends React.Component<Props, any> {
                 this.goToActive();
                 break;
         }
+        inDebug(() => debug_obj[this.props.areaKey] = `${prevFill} > ${fill}`);
+        // console.log(debug_obj, this.props.key)
     };
 
     goToPassed = () => {
         this.rect.tint = COLORS.passedTint;
-        this.rect.alpha = 1;
+        this.skipDelay = true;
+        if (this.rect.alpha > 0.5) {
+            this.minAlpha = 0.5;
+            this.maxAlpha = 1;
+            this.fadingMod = -1;
+        } else {
+            this.maxAlpha = 0.5;
+            this.minAlpha = 0;
+            this.fadingMod = 1;
+        }
+        this.ticker.start();
     };
 
     goToDisabled = () => {
-        this.rect.alpha = 0;
+        // this.rect.alpha = 0;
         this.emitter.emit = false;
+        this.skipDelay = true;
         this.fadingMod = -1;
+        this.minAlpha = 0;
+        this.ticker.start();
     };
 
     goToActive = () => {
         this.rect.tint = COLORS.activeTint;
         this.ticker.start();
         this.emitter.emit = true;
+        this.skipDelay = false;
         this.fadingMod = 1;
+        this.maxAlpha = 1;
     };
 
     rafTick = (ts: RafTimestamp) => {
@@ -145,15 +177,15 @@ class AreaSpriteFill extends React.Component<Props, any> {
     };
 
     updateRect = (ts: RafTimestamp) => {
-        if (ts.elapsedTotal >= AREA.fillTime * AREA.fadingStart) {
+        if (this.skipDelay || ts.elapsedTotal >= AREA.fillTime * AREA.fadingStart) {
             this.rect.alpha += AREA.fadingDelta * this.fadingMod * ts.elapsed;
-            if (this.rect.alpha > 1) {
-                this.rect.alpha = 1;
+            if (this.rect.alpha > this.maxAlpha) {
+                this.rect.alpha = this.maxAlpha;
             }
-            if (this.rect.alpha < 0) {
-                this.rect.alpha = 0;
+            if (this.rect.alpha < this.minAlpha) {
+                this.rect.alpha = this.minAlpha;
             }
-            if (this.rect.alpha === 1 && this.fadingMod >= 0 && this.emitter.particleCount === 0) {
+            if (this.rect.alpha === this.maxAlpha && this.fadingMod >= 0 && this.emitter.particleCount === 0) {
                 this.ticker.stop();
             }
         }

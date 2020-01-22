@@ -51,7 +51,7 @@ export class AreaOverlay extends React.Component<Props> {
 
     render = () => {
         const { area } = this.props;
-        const containerName = `area_dstr_${ area.key }`;
+        const containerName = `area_overlay_${ area.key }`;
         return <Container name={ containerName } ref={c => this.container = c as any }>
             {
                 area.overlay.tiles.map(({ tex, x, y }, i) => {

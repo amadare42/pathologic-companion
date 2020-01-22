@@ -9,5 +9,5 @@ export const inDebug = <T>(action: (gui: dat.GUI) => T): T => {
 };
 
 inDebug(() => {
-    gui.domElement.style.zIndex = '9999999999';
+    gui.domElement.parentElement!.style.zIndex = '9999999999';
 });

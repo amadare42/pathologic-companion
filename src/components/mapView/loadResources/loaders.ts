@@ -30,20 +30,22 @@ export type AreaData = {
 
 
 export async function loadResources(app: PIXI.Application, quality: QualityPreset) {
-    console.log(`loading ${quality} preset...`);
+    console.group(`loading ${quality} preset...`);
 
-    const [mapTiles, areas, borderTiles, crows, characterCards] = await timed('total', () => Promise.all([
+    const [mapTiles, areas, crows, characterCards] = await timed('total', () => Promise.all([
         timed('map', () => loadMapTiles('low')),
         timed('areas', () => loadAreas(quality)),
-        splitImgToTiles('/borders.svg'),
+        // splitImgToTiles('/borders.svg'),
         loadCrowsTextures(app.loader),
         loadCharacterCards(app.loader),
-    ]));
+    ])).catch(e => {
+        console.groupEnd();
+        throw e;
+    });
 
     const data = {
         mapTiles,
         areas,
-        borderTiles,
         crows,
         characterCards,
         whiteHand: PIXI.Texture.from('icons/hand_white.svg'),
@@ -59,6 +61,7 @@ export async function loadResources(app: PIXI.Application, quality: QualityPrese
     };
 
     console.log('loaded data:', data);
+    console.groupEnd();
     return data;
 }
 

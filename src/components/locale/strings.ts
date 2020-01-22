@@ -58,7 +58,6 @@ for (let key of Object.keys(main)) {
 
 i18n.init({
     lng: 'ua',
-    debug: true,
     interpolation: {
         format: (value, format, lng) => {
             if (format && format.startsWith('if-not:')) {

@@ -44,6 +44,7 @@ export interface AreaToken {
 
 export interface MapSnapshot {
     transition?: AreaTransition;
+    focusOn?: AreaKey;
     fills: AreaFills;
     tokens: AreaToken[];
     grayscale?: boolean;

@@ -2,9 +2,9 @@ import { BaseAppState, RouteProps } from './appState';
 import { UiProps } from '../hud/uiScreen';
 import Button from '../hud/button/button';
 import React from 'react';
-import { areaKeys } from '../../data/areas';
+import { AreaKey, areaKeys } from '../../data/areas';
 import { AreaFills, AreaToken } from '../../model';
-import { locationToAreaKeys } from '../../utils';
+import { locationToAreaKey, locationToAreaKeys } from '../../utils';
 import { strings } from '../locale/strings';
 import { allCharacters } from '../../data/characters';
 import { ModalController, NullModalController } from '../hud/modal/modalController';
@@ -15,26 +15,22 @@ import { gameActionReducer } from '../../core/gameActionReducer';
 import _ from 'lodash';
 import { inDebug } from '../../debug';
 import { PageSizes } from '../theme/createTheme';
-import Slider, { Handle, Range } from 'rc-slider';
+import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import 'rc-tooltip/assets/bootstrap.css';
 import { calcCss } from '../../utils/sizeCss';
-import ReactTooltip from 'react-tooltip';
-import { COLORS } from '../mapView/animationConstants';
 
 interface State {
     modal: ModalController | null;
+    isPlaying: boolean;
 }
 
-const isControl = (s: ActionSnapshot) => controlActionTypes.includes(s.action.type);
-const notControl = (s: ActionSnapshot) => !isControl(s);
-
-let debugState = {
+let debug_obj = {
     currentAction: ''
 };
 inDebug((gui) => {
     const folder = gui.addFolder('replay');
-    folder.add(debugState, 'currentAction').listen();
+    folder.add(debug_obj, 'currentAction').listen();
     folder.open();
 });
 
@@ -49,19 +45,22 @@ class ActionsIterator {
     }
 
     precedingInSameTurn = () => {
-        const actions = this.actions.slice(0, this.index + 1);
+        const actions = this.actions.slice(0, this.index);
+        if (this.index === 0) {
+            return [];
+        }
+        const turnNo = this.actions[this.index].world.turnNo;
         return _.takeRightWhile(actions, a =>
-            a.action.type !== 'end-healers-turn'
+            a.world.turnNo === turnNo
         )
     };
 
     havePrev = () => {
         return this.index > 0;
-        // return this.actions.slice(0, this.index).some(a => notControl(a) || a.action.type === 'start');
     };
 
     haveNext = () => {
-        return this.actions.slice(this.index + 1).some(notControl);
+        return !!(this.actions.length && this.index < this.actions.length - 1);
     };
 
     current = () => {
@@ -86,19 +85,21 @@ class ActionsIterator {
 export class ReplayState extends BaseAppState<State> {
 
     iterator: ActionsIterator;
-    isPlaying = false;
+    timer: any = null;
+
+    isPlaying = () => !!this.timer;
 
     constructor(routeProps: RouteProps, private actions: GameAction[]) {
         super(routeProps, {
-            modal: NullModalController
+            modal: NullModalController,
+            isPlaying: false
         });
         this.iterator = new ActionsIterator(actions);
-        console.log(this.iterator.actions);
     }
 
     renderProps(): UiProps {
         const { world, action } = this.iterator.current();
-        inDebug(() => debugState.currentAction = action.type);
+        inDebug(() => debug_obj.currentAction = action.type);
 
         return {
             mainMsg: strings.turnNo({ turn: world.turnNo }),
@@ -106,14 +107,15 @@ export class ReplayState extends BaseAppState<State> {
             bottomButtons: () => <>
                 <Button iconHref={ 'icons/prev.png' } unpressableInnactive={ true }
                         isActive={ this.iterator.havePrev() } onClick={ this.playPrev }/>
-                <Button iconHref={ 'icons/pause.png' } onClick={ this.playNext }/>
+                <Button iconHref={ this.isPlaying() ? 'icons/pause.png' : 'icons/play.png' } unpressableInnactive={ true } isActive={ this.iterator.haveNext() } onClick={ this.togglePlay }/>
                 <Button iconHref={ 'icons/next.png' } unpressableInnactive={ true }
                         isActive={ this.iterator.haveNext() } onClick={ this.playNext }/>
             </>,
             modalController: this.state.modal,
             mapSnapshot: {
                 fills: this.getFills(),
-                tokens: this.getTokens()
+                tokens: this.getTokens(),
+                focusOn: this.getFocusOnLocation()
             },
             onMapTopButtons: () => <Button iconHref={ 'icons/double_movement.png' }
                                            isVisible={ world.doubleMovement }
@@ -126,6 +128,33 @@ export class ReplayState extends BaseAppState<State> {
         };
     }
 
+    getFocusOnLocation = (): AreaKey => {
+        const { world } = this.iterator.current();
+        if (world.plagueLocation !== 0)
+            return locationToAreaKey(world.plagueLocation);
+
+        if (!this.iterator.havePrev()) {
+            return 'steppe02';
+        }
+        const prevWorld = this.iterator.actions[this.iterator.index - 1].world;
+
+        switch (prevWorld.plagueLocation) {
+            case 1:
+            case 2:
+                return 'steppe01';
+
+            case 8:
+            case 14:
+            case 13:
+            case 6:
+            case 7:
+                return 'steppe03';
+
+            default:
+                return 'steppe02';
+        }
+    };
+
     renderSlider = (pageSizes: PageSizes) => {
         const margin = calcCss(pageSizes.viewport, 10, 'vw');
         const width = pageSizes.viewport.width - margin * 2;
@@ -134,7 +163,7 @@ export class ReplayState extends BaseAppState<State> {
         let marks = {} as any;
 
         this.iterator.actions.forEach((a, i) => {
-            if (a.action.type == 'end-healers-turn') {
+            if (a.action.type === 'end-healers-turn') {
                 marks[i] = a.world.turnNo;
             }
         });
@@ -145,7 +174,7 @@ export class ReplayState extends BaseAppState<State> {
             left: (pageSizes.viewport.width - width / scale) / 2,
             height: 50,
             bottom: pageSizes.bottom,
-            zIndex: 999999999999,
+            zIndex: 200,
             transform: `scale(${scale})`
         } }>
             <Slider min={ 0 }
@@ -153,13 +182,15 @@ export class ReplayState extends BaseAppState<State> {
                     value={ this.iterator.index }
                     onChange={ v => {
                         this.iterator.index = v;
+                        this.playAction(this.iterator.current());
+                        this.disableTimer();
                         this.update();
                     } }
                     trackStyle={{
                         backgroundColor: '#811000'
                     }}
                     handleStyle={{
-                        border: 'solid 2px #811000'
+                        borderColor: '#811000'
                     }}
                     activeDotStyle={{
                         borderColor: '#811000'
@@ -169,8 +200,38 @@ export class ReplayState extends BaseAppState<State> {
         </div>
     };
 
+    togglePlay = () => {
+        if (this.isPlaying()) {
+            this.disableTimer();
+        } else {
+            this.resetTimer();
+        }
+        this.update();
+    };
+
+    disableTimer = () => {
+        clearInterval(this.timer);
+        this.timer = null;
+    };
+
+    resetTimer = () => {
+        this.disableTimer();
+        this.timer = setInterval(this.timerTick, 2000);
+    };
+
+    timerTick = () => {
+        this.playNext();
+        if (!this.iterator.haveNext()) {
+            this.disableTimer();
+            this.update();
+        }
+    };
+
     playNext = () => {
-        this.playAction(this.iterator.moveNext());
+        do {
+            this.iterator.moveNext();
+        } while (this.iterator.haveNext() && controlActionTypes.includes(this.iterator.current().action.type));
+        this.playAction(this.iterator.current());
     };
 
     playPrev = () => this.playAction(this.iterator.movePrev());
@@ -241,7 +302,4 @@ export class ReplayState extends BaseAppState<State> {
         return [];
     };
 
-    togglePlay = () => {
-
-    }
 }
