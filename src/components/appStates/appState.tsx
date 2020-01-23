@@ -21,6 +21,7 @@ export class SimpleTransition implements Transition {
 export interface RouteProps {
     pushState: (state: AppState, transition?: Transition) => void;
     popState: (transition?: Transition) => void;
+    clearAll: (transition?: Transition) => void;
     update: () => void;
 
     pushMessage: (msg: string, timeout?: number) => void;

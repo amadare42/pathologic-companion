@@ -10,6 +10,7 @@ interface Props extends WithStyles<typeof styles> {
     main?: string | null;
     secondary?: string | null;
     msgAccented?: boolean;
+    onMenuClick?: () => void;
 }
 
 class TopPanel extends Component<Props> {
@@ -27,7 +28,7 @@ class TopPanel extends Component<Props> {
                             { main || '' }
                         </FitText>
                     </div>
-                    <Button iconHref={'icons/menu_button.png'} />
+                    <Button iconHref={'icons/menu_button.png'} onClick={this.props.onMenuClick} />
                 </div>
                 <div className={ classNames(classes.secondaryRow, { accented: isAccented }) }>
                     <FitText lines={2} maxWidth={{ value: 100, type: 'vw' }} maxHeight={{ value: 7, type: 'vh' }}>

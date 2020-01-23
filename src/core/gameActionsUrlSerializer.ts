@@ -15,7 +15,7 @@ const actionIds: { [key in ActionType]: number } = {
     'healers-m12': 7,
     'healers-s-plus-movement': 8,
     'end-healers-turn': 9,
-    // 15 max
+    // 14 max
 };
 
 const actionTypes: { [key: number]: ActionType } = Object.fromEntries(Object.entries(actionIds)
@@ -39,7 +39,9 @@ const alph = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-';
 const toB64 = (bitString: string) => {
     let acc = '';
     for (let idx = 0; idx < bitString.length; idx += 6) {
-        const part = parseInt(bitString.substr(idx, 6), 2);
+        const strPart = bitString.substr(idx, 6);
+        const padded = strPart.padStart(6, '0');
+        const part = parseInt(padded, 2);
         acc += alph[part];
     }
     return acc;
@@ -47,7 +49,9 @@ const toB64 = (bitString: string) => {
 const fromB64 = (b64: string) => {
     let acc = '';
     for (let c of b64) {
-        const padded = alph.indexOf(c).toString(2).padStart(6, '0');
+
+        const part = alph.indexOf(c).toString(2);
+        const padded = part.padStart(6, '0');
         acc += padded;
     }
     return acc;
@@ -59,9 +63,11 @@ class GameActionsUrlSerializer {
 
     serialize(actions: GameAction[]) {
         let acc = bits(this.version, 2);
-        acc += actions.map(this.serializeAction).join('');
-        console.log(acc);
-        return toB64(acc);
+        const actionStrs = actions.map(this.serializeAction);
+        acc += actionStrs.join('') + '0000';
+        const b64 = toB64(acc);
+
+        return b64;
     }
 
     deserialize(data: string): GameAction[] {
@@ -71,14 +77,20 @@ class GameActionsUrlSerializer {
         let actions: GameAction[] = [];
         while (position.pointer < bits.length) {
             const actionType = this.deserializeActionType(bits, position);
+            if (!actionType) {
+                break;
+            }
             const action = this.deserializeAction(actionType, bits, position);
             actions.push(action);
         }
         return actions;
     }
 
-    deserializeActionType = (bits: string, position: Position): GameActionType => {
+    deserializeActionType = (bits: string, position: Position): GameActionType | null => {
         const typeNo  = parseBits(bits, position, 4);
+        if (!typeNo) {
+            return null;
+        }
         return actionTypes[typeNo];
     };
 
@@ -165,3 +177,4 @@ class GameActionsUrlSerializer {
 }
 
 export const urlSerializer = new GameActionsUrlSerializer();
+(window as any).urlSerialier = urlSerializer;

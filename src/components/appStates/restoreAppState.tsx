@@ -25,7 +25,7 @@ export class RestoreAppState extends BaseAppState<{}> {
         try {
             const actions = urlSerializer.deserialize(url);
             this.routeProps.popState();
-            this.routeProps.pushState(new ReplayState(this.routeProps, actions));
+            this.routeProps.pushState(new ReplayState(this.routeProps, actions, this.persistenceService));
         } catch (e) {
             // TODO: error parsing url handling
             console.log('Error parsing url', e);

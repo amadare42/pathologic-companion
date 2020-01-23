@@ -10,4 +10,10 @@ export const inDebug = <T>(action: (gui: dat.GUI) => T): T => {
 
 inDebug(() => {
     gui.domElement.parentElement!.style.zIndex = '9999999999';
+    if (localStorage.getItem('debug_show') == 'false') {
+        gui.hide();
+    }
+    setInterval(() => {
+        localStorage.setItem('debug_show', (gui.domElement.style.display !== 'none').toString());
+    }, 250);
 });

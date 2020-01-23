@@ -9,8 +9,8 @@ import { strings } from '../locale/strings';
 import { allCharacters } from '../../data/characters';
 import { ModalController, NullModalController } from '../hud/modal/modalController';
 import { KilledCharactersModalController } from '../hud/modal/killedCharactersModalController';
-import { controlActionTypes, GameAction } from '../../model/actions';
-import { ActionSnapshot, formatter } from '../../core/gameEngine';
+import { controlActionTypes, GameAction, GameActionType } from '../../model/actions';
+import { ActionSnapshot } from '../../core/gameEngine';
 import { gameActionReducer } from '../../core/gameActionReducer';
 import _ from 'lodash';
 import { inDebug } from '../../debug';
@@ -19,6 +19,8 @@ import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import 'rc-tooltip/assets/bootstrap.css';
 import { calcCss } from '../../utils/sizeCss';
+import { MenuState } from './menu/menuState';
+import { PersistenceService } from '../../core/persistenceService';
 
 interface State {
     modal: ModalController | null;
@@ -89,7 +91,7 @@ export class ReplayState extends BaseAppState<State> {
 
     isPlaying = () => !!this.timer;
 
-    constructor(routeProps: RouteProps, private actions: GameAction[]) {
+    constructor(routeProps: RouteProps, private actions: GameAction[], private persistenceService: PersistenceService) {
         super(routeProps, {
             modal: NullModalController,
             isPlaying: false
@@ -124,7 +126,8 @@ export class ReplayState extends BaseAppState<State> {
                                                tooltipHint: strings.doubleMovement(),
                                                direction: 'left'
                                            } }/>,
-            customComponent: this.renderSlider
+            customComponent: this.renderSlider,
+            onMenuClick: () => this.routeProps.pushState(new MenuState(this.routeProps, this.persistenceService))
         };
     }
 
@@ -210,20 +213,37 @@ export class ReplayState extends BaseAppState<State> {
     };
 
     disableTimer = () => {
-        clearInterval(this.timer);
+        clearTimeout(this.timer);
         this.timer = null;
     };
 
     resetTimer = () => {
         this.disableTimer();
-        this.timer = setInterval(this.timerTick, 2000);
+        this.timerTick();
     };
 
     timerTick = () => {
-        this.playNext();
-        if (!this.iterator.haveNext()) {
+        if (this.iterator.haveNext()) {
+            this.playNext();
+            this.timer = setTimeout(this.timerTick, this.getDelay(this.iterator.current().action.type));
+        } else {
             this.disableTimer();
-            this.update();
+        }
+        this.update();
+    };
+
+    private getDelay = (actionType: GameActionType) => {
+        switch (actionType) {
+            case 'movement':
+            case 'healers-s-plus-movement':
+                return 1000;
+            case 'contaminate':
+            case 'siege-start':
+            case 'siege-end':
+                return 2000;
+
+            default:
+                return 1300;
         }
     };
 
@@ -234,7 +254,12 @@ export class ReplayState extends BaseAppState<State> {
         this.playAction(this.iterator.current());
     };
 
-    playPrev = () => this.playAction(this.iterator.movePrev());
+    playPrev = () => {
+        do {
+            this.iterator.movePrev()
+        } while (this.iterator.havePrev() && controlActionTypes.includes(this.iterator.current().action.type));
+        this.playAction(this.iterator.current());
+    };
 
     playAction = (snapshot: ActionSnapshot) => {
         const { action } = snapshot;

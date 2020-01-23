@@ -24,6 +24,8 @@ export interface UiProps {
     onAreaClick?: (key: AreaKey) => void;
     modalController?: ModalController | null;
 
+    onMenuClick?: () => void;
+
     customComponent?: (pageSizes: PageSizes) => React.ReactNode | void;
 }
 
@@ -52,13 +54,14 @@ class UiScreen extends Component<UiProps> {
     private renderOnMapTopButtons = (pageSizes: PageSizes) => {
         if (!this.props.onMapTopButtons) return null;
 
-        return <div style={{ position: 'absolute', right: '10vw', zIndex: 1000, top: ~~(pageSizes.viewport.height * 0.04 + pageSizes.top) }}>
+        return <div style={{ position: 'absolute', right: '10vw', zIndex: 200, top: ~~(pageSizes.viewport.height * 0.04 + pageSizes.top) }}>
             { this.props.onMapTopButtons() }
         </div>
     };
 
     private renderTopPanel = () => <TopPanel
         main={ this.props.mainMsg }
+        onMenuClick={ this.props.onMenuClick }
         msgAccented={ this.props.msgAccented }
         secondary={ this.props.msg }/>;
 

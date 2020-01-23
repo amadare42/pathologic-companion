@@ -18,6 +18,7 @@ export interface ButtonProps {
     isActive?: boolean;
     unpressableInnactive?: boolean;
     onClick?: () => void;
+    styles?: React.CSSProperties;
 
     tooltip?: Tooltip;
 }
@@ -50,7 +51,11 @@ class Button extends React.Component<Props> {
                           onLongPressEnd={ () => ReactTooltip.hide(this.divRef.current!) }>
                     <div data-tip="" data-for={ this.props.tooltip?.id }
                          ref={ this.divRef }
-                         style={ { display: isVisible ? 'block' : 'none', filter: isActive ? '' : 'grayscale(1)' } }
+                         style={
+                             {...{
+                                 display: isVisible ? 'block' : 'none',
+                                 filter: isActive ? '' : 'grayscale(1)'
+                             }, ...this.props.styles } }
                          className={ this.props.classes.button }>
                         <img alt={ this.props.iconHref } src={ this.props.iconHref }
                              style={ { WebkitTouchCallout: 'none' } } height={ '100%' }/>

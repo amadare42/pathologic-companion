@@ -6,6 +6,10 @@ interface PathologicDb extends idb.DBSchema {
     actions: {
         key: number;
         value: ActionSnapshot;
+    },
+    lastGames: {
+        key: number,
+        value: string
     }
 }
 

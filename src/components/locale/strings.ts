@@ -48,7 +48,11 @@ export const main = {
     effectm12: ['Верхом на крысах'],
     effectsPlusMovement: ['Штамм Перемещение'],
     selectLocation: ['Оберіть локацію'],
-    restoringGameState: ['Відновлення стану']
+    restoringGameState: ['Відновлення стану'],
+    startNew: ['Почати нову гру'],
+    restoreLastGame: ['Відновити останню гру'],
+    saveGameReplay: ['Зберегти запис'],
+    returnToGame: ['Повернутись до гри'],
 } as const;
 
 let trans = {} as any;

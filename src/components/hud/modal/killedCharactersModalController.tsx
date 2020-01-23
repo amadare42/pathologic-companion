@@ -11,30 +11,27 @@ export class KilledCharactersModalController implements ModalController {
         h: 32
     };
 
-    private state = 0;
+    private disposed = false;
     private props: ModalProps | null = null;
 
     constructor(private characters: Character[]) {
-        setTimeout(this.destructionEnd, timings.destructionTotal * 1000);
+        // setTimeout(this.destructionEnd, timings.destructionTotal * 1000);
         setTimeout(this.disposeEnd, (timings.destructionTotal + 1) * 1000);
     }
 
-    destructionEnd = () => {
-        if (!this.props) {
-            return;
-        }
-        this.state = 1;
-        this.props.update();
-    };
     disposeEnd = () => {
         if (!this.props) {
             return;
         }
-        this.state = 2;
+        this.disposed = true;
         this.props.update();
     };
 
     renderBackdrop(props: ModalProps) {
+        if (this.disposed) {
+            return null;
+        }
+
         const { sizes, pageSizes } = props;
         return <CharacterCard allSelectedCharacters={ this.characters }
                               selectedCharacter={ this.characters[0] }
@@ -50,10 +47,10 @@ export class KilledCharactersModalController implements ModalController {
     }
 
     renderModal(props: ModalProps) {
-        if (this.state === 2) {
+        if (this.disposed) {
             return null;
         }
-        return <ModalOverlay pageSizes={ props.pageSizes } mode={ this.state === 1 ? 'hidden' : 'killed-and-hidden' }/>
+        return <ModalOverlay pageSizes={ props.pageSizes } mode={ 'killed-and-hidden' }/>
     }
 
     setProps(props: ModalProps): void {

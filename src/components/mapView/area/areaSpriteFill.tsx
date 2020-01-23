@@ -61,13 +61,10 @@ class AreaSpriteFill extends React.Component<Props, any> {
         this.emitter = this.createEmitter(bbox, sizeMult);
         this.ticker = new RafTicker(this.rafTick);
 
-        this.transitToFill(props.fill);
+        this.transitToFill(props.fill, props.fill);
     }
 
     private createEmitter(bbox: BBox, sizeMult: number) {
-        const baseLifetime = AREA.fillTime * 0.001;
-        const ttlMod = AREA.particlesTtlSpread * baseLifetime;
-
         return new particles.Emitter(this.container, [this.props.resources.redHand], {
             scale: {
                 start: 2,
@@ -83,10 +80,7 @@ class AreaSpriteFill extends React.Component<Props, any> {
                 max: 360
             },
             noRotation: false,
-            lifetime: {
-                min: baseLifetime,
-                max: baseLifetime + ttlMod
-            },
+            lifetime: this.getLifetime(),
             spawnType: 'rect',
             spawnRect: {
                 x: 0,
@@ -98,9 +92,19 @@ class AreaSpriteFill extends React.Component<Props, any> {
                 x: 0,
                 y: 0
             },
-            frequency: AREA.fillTime / (AREA.particlesCount * sizeMult) * 0.001,
+            frequency: (AREA.fillTime / (AREA.particlesCount * sizeMult)) * 0.001,
             maxParticles: AREA.particlesCount * sizeMult
         });
+    }
+
+    getLifetime = (scale: number = 1) => {
+        const baseLifetime = (AREA.fillTime + AREA.fillTime * AREA.fadingStart) * 0.001;
+        const ttlMod = AREA.particlesTtlSpread * baseLifetime;
+
+        return {
+            min: baseLifetime * scale,
+            max: (baseLifetime + ttlMod) * scale
+        };
     }
 
     shouldComponentUpdate(nextProps: Readonly<Props>, nextState: Readonly<any>, nextContext: any): boolean {
@@ -113,7 +117,21 @@ class AreaSpriteFill extends React.Component<Props, any> {
         return true;
     }
 
-    transitToFill = (fill: AreaFill, prevFill?: AreaFill) => {
+    transitToFill = (fill: AreaFill, prevFill: AreaFill) => {
+        if (fill !== prevFill && prevFill === 'active') {
+            let lt = this.getLifetime(0.3);
+            this.emitter.minLifetime = lt.min;
+            this.emitter.maxLifetime = lt.max;
+
+            this.emitter.emit = true;
+            this.emitter.update(AREA.fillTime * 0.001);
+            this.emitter.emit = false;
+        } else {
+            let lt = this.getLifetime();
+            this.emitter.minLifetime = lt.min;
+            this.emitter.maxLifetime = lt.max;
+        }
+
         switch (fill) {
             case 'disabled':
             case 'available':
@@ -136,8 +154,8 @@ class AreaSpriteFill extends React.Component<Props, any> {
     goToPassed = () => {
         this.rect.tint = COLORS.passedTint;
         this.skipDelay = true;
-        if (this.rect.alpha > 0.5) {
-            this.minAlpha = 0.5;
+        if (this.rect.alpha > 0.65) {
+            this.minAlpha = 0.65;
             this.maxAlpha = 1;
             this.fadingMod = -1;
         } else {
@@ -149,7 +167,6 @@ class AreaSpriteFill extends React.Component<Props, any> {
     };
 
     goToDisabled = () => {
-        // this.rect.alpha = 0;
         this.emitter.emit = false;
         this.skipDelay = true;
         this.fadingMod = -1;
