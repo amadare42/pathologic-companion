@@ -1,0 +1,185 @@
+{
+  "scale": 4,
+  "areas": [
+    {
+      "key": "area01",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "area02",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "area03",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "area04",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "area05",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "area06",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "area07",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "area08",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "area09",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "area10",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "area11",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "area12",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "area13",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "area14",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "area15",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "steppe01",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "steppe02",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    },
+    {
+      "key": "steppe03",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "name": "0_0.png"
+        }
+      ]
+    }
+  ]
+}

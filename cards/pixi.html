@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pixi Playground</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.2.0/pixi.js"></script>
+</head>
+<body>
+<script>
+
+    function getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function delay(ms) {
+        return new Promise(r => setTimeout(r, ms));
+    }
+</script>
+
+<script>
+    // init
+    // const steppeTex = PIXI.Texture.from("areas_png/area01.png");
+
+    const app = new PIXI.Application({ backgroundColor: 0x110000, width: 4000, height: 4000 });
+    const renderer = app.renderer;
+    document.body.appendChild(app.view);
+
+    // container
+    const container = new PIXI.Container();
+    app.stage.addChild(container);
+
+    const files = ['alexandr.jpg',
+        'andrei.jpg',
+        'kapella.jpg',
+        'maria.jpg',
+        'notkin.jpg',
+        'ospina.jpg',
+        'rubin.jpg',
+        'spichka.jpg',
+        'vlad.jpg'
+    ];
+    const cardWidth = 804;
+    const maxScale = 0.2;
+    const minScale = 0.03;
+    const sprites = files.map(f => PIXI.Sprite.from(f, {
+        // width: cardWidth,
+        // height: 1205
+    }));
+    // const sprite = PIXI.Sprite.from('alexandr_trans.png');
+    const tex = PIXI.Texture.from('alexandr.jpg');
+    const sprite = PIXI.Sprite.from(tex);
+    sprite.x = 400;
+    sprite.y = 200;
+    // sprite.scale.set(0.3, 0.3);
+
+    const displacementSprite = PIXI.Sprite.from('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');
+    displacementSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
+    const filter = new PIXI.filters.DisplacementFilter(displacementSprite, 0);
+    filter.padding = 1500;
+
+    const target = -400;
+    const time = 2000;
+    const targetAnchorX = 0;
+    const targetAnchorY = 0;
+    const speed = target / time;
+    let last = 0;
+
+    function animate(ms) {
+        if (last == 0) {
+            last = ms;
+            requestAnimationFrame(animate);
+            return;
+        }
+        const progress = ms - last;
+        const scale = 1 + progress * speed;
+        filter.scale.set(scale, scale);
+
+        const anchor = (targetAnchorX / time) * progress;
+        const anchorY = (targetAnchorY / time) * progress;
+        displacementSprite.anchor.set(anchor, anchorY);
+
+        sprite.alpha = 1 - progress / time;
+        if (scale < target) {
+            return;
+        }
+        requestAnimationFrame(animate)
+    }
+
+    setInterval(() => {
+        last = 0;
+        filter.scale.set(1, 1);
+        setTimeout(() => {
+            requestAnimationFrame(animate);
+        }, 2000)
+    }, 4000);
+    setTimeout(() => {
+        requestAnimationFrame(animate);
+    }, 1000)
+
+    sprite.filters = [filter];
+
+
+    container.addChild(sprite);
+
+</script>
+</body>
+</html>
