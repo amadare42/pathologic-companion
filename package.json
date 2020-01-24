@@ -25,6 +25,7 @@
     "csv-parse": "^4.8.2",
     "dat.gui": "^0.7.6",
     "fast-memoize": "^2.5.1",
+    "gh-pages": "^2.2.0",
     "gsap": "^3.0.4",
     "i18next": "^19.0.2",
     "idb": "^5.0.0",
@@ -45,6 +46,8 @@
     "typescript": "~3.7.2"
   },
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "start-local": "react-scripts start -- --host 0.0.0.0",
     "build": "react-scripts build",
@@ -54,6 +57,7 @@
   "eslintConfig": {
     "extends": "react-app"
   },
+  "homepage": "https://amadare42.github.io/pathologic-companion",
   "browserslist": {
     "production": [
       ">0.2%",

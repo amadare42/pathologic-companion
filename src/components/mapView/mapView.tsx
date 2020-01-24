@@ -9,6 +9,7 @@ import { ClickEventData } from 'pixi-viewport';
 import { MapBackground } from './mapBackground';
 import { WithSize } from '../stage/autoSizeContext';
 import { inDebug } from '../../debug';
+import * as PIXI from 'pixi.js';
 
 interface Props extends WithSize, WithResources {
     mapSnapshot?: MapSnapshot | null;
