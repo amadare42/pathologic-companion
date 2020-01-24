@@ -3,7 +3,6 @@ import { WithStyles, withStyles } from '@material-ui/styles';
 import { styles } from './topPanel.styles';
 import Button from '../button/button';
 import classNames from 'classnames';
-// import FitText from '@kennethormandy/react-fittext';
 import FitText from '../fitText/fitText';
 
 interface Props extends WithStyles<typeof styles> {
@@ -24,7 +23,7 @@ class TopPanel extends Component<Props> {
             <div className={ classes.padding }>
                 <div className={ classes.mainRow }>
                     <div className={ classes.title }>
-                        <FitText lines={1} maxWidth={{ value: 60, type: 'vw' }} maxHeight={{ value: 7, type: 'vh' }}>
+                        <FitText lines={1} maxWidth={{ value: 65, type: 'vw' }} maxHeight={{ value: 7, type: 'vh' }}>
                             { main || '' }
                         </FitText>
                     </div>

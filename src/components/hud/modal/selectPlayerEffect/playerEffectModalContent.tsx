@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { createStyles, WithStyles, withStyles } from '@material-ui/styles';
 import classNames from 'classnames';
-import { COLORS } from '../../../mapView/animationConstants';
+import { COLORS } from '../../../mapView/constants';
 import { Character } from '../../../../data/characters';
 import { PageSizes } from '../../../theme/createTheme';
 import ReactHammer from 'react-hammerjs';

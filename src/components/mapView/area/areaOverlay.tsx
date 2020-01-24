@@ -2,7 +2,7 @@ import React from 'react';
 import { AreaData } from '../loadResources';
 import { Container, Sprite } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
-import { AREA_OVERLAY } from '../animationConstants';
+import { AREA_OVERLAY } from '../constants';
 
 interface Props {
     area: AreaData;

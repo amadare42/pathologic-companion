@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { withStyles, WithStyles } from '@material-ui/styles';
 import { styles } from './mixedMediaModal.styles';
 import { PageSizes } from '../../theme/createTheme';
-import { SIZES } from '../../mapView/animationConstants';
+import { SIZES } from '../../mapView/constants';
 import { calcCss } from '../../../utils/sizeCss';
 import { ModalController, ModalProps, RelativeSizes } from './modalController';
 

@@ -1,5 +1,5 @@
 import { createStyles } from '@material-ui/styles';
-import { COLORS, SIZES } from '../../mapView/animationConstants';
+import { COLORS, SIZES } from '../../mapView/constants';
 import { Theme } from '../../theme/createTheme';
 import { breakScaleBkg } from '../../../utils/scaleBreakdown';
 

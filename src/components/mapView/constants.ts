@@ -52,7 +52,3 @@ export const TOKENS = new class {
     deltaScale = (this.fromScale - this.toScale) / this.time;
     deltaAlpha = 1 / this.time;
 }();
-
-export const TEX_SIZE = {
-    hand: 340
-};

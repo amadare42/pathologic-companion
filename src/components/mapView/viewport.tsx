@@ -2,7 +2,7 @@ import React from 'react';
 import { PixiComponent, useApp } from '@inlet/react-pixi';
 import { BounceOptions, ClampZoomOptions, ClickEventData, Viewport } from 'pixi-viewport';
 import * as PIXI from 'pixi.js';
-import { SIZES } from './animationConstants';
+import { SIZES } from './constants';
 import { Point } from '../../model';
 import { inDebug } from '../../debug';
 

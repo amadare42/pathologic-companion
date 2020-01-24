@@ -2,7 +2,7 @@ import React from 'react';
 import { AreaData, Resources } from '../loadResources';
 import { Sprite } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
-import { TOKENS } from '../animationConstants';
+import { TOKENS } from '../constants';
 
 interface Props {
     area: AreaData;

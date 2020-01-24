@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { createStyles, WithStyles, withStyles } from '@material-ui/styles';
 import classNames from 'classnames';
-import { COLORS } from '../../../mapView/animationConstants';
+import { COLORS } from '../../../mapView/constants';
 import { Character, characters, healerCharacters } from '../../../../data/characters';
 import { calcCss } from '../../../../utils/sizeCss';
 import { PageSizes } from '../../../theme/createTheme';
@@ -10,7 +10,7 @@ import { timings } from './timings';
 import { ModalMode } from './controller';
 import SliderIndicator from './sliderIndicator';
 import ModalTitleRow from '../modalTitleRow';
-import { ReactComponent as Icon } from '../../../../images/hand_white.svg';
+import { ReactComponent as Icon } from '../../../../images/hand.svg';
 
 interface Props extends WithStyles<typeof styles> {
     mode: ModalMode;

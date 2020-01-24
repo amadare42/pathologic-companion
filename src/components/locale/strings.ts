@@ -53,6 +53,7 @@ export const main = {
     restoreLastGame: ['Відновити останню гру'],
     saveGameReplay: ['Зберегти запис'],
     returnToGame: ['Повернутись до гри'],
+    loading: ['Завантаження...']
 } as const;
 
 let trans = {} as any;

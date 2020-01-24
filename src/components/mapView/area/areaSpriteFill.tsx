@@ -5,7 +5,7 @@ import React from 'react';
 import { RawDisplayObj } from '../pixiUtils/rawDisplayObj';
 import { withPixiApp } from '@inlet/react-pixi';
 import { RafTicker, RafTimestamp } from '../pixiUtils/rafTicker';
-import { AREA, COLORS } from '../animationConstants';
+import { AREA, COLORS } from '../constants';
 import { Resources } from '../loadResources';
 import { inDebug } from '../../../debug';
 import { AreaKey, areaKeys } from '../../../data/areas';

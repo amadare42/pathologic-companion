@@ -1,6 +1,6 @@
 import createBreakpoints from './createBreakpoints';
 import { Size } from 'react-virtualized';
-import { SIZES } from '../mapView/animationConstants';
+import { SIZES } from '../mapView/constants';
 
 export interface PageSizes {
     top: number,

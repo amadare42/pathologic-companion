@@ -1,4 +1,3 @@
-import { ReactComponent as Icon } from '../../../../images/hand_white.svg';
 import React from 'react';
 import { createStyles, WithStyles, withStyles } from '@material-ui/styles';
 import classNames from 'classnames';

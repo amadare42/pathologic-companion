@@ -1,7 +1,7 @@
 import React from "react";
 import { AreaData, Resources, withResources} from '../loadResources';
 import { Container, Sprite, Text } from "@inlet/react-pixi";
-import { COLORS } from "../animationConstants";
+import { COLORS } from "../constants";
 
 interface Props {
     area: AreaData;

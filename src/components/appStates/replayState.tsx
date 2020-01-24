@@ -109,7 +109,8 @@ export class ReplayState extends BaseAppState<State> {
             bottomButtons: () => <>
                 <Button iconHref={ 'icons/prev.png' } unpressableInnactive={ true }
                         isActive={ this.iterator.havePrev() } onClick={ this.playPrev }/>
-                <Button iconHref={ this.isPlaying() ? 'icons/pause.png' : 'icons/play.png' } unpressableInnactive={ true } isActive={ this.iterator.haveNext() } onClick={ this.togglePlay }/>
+                <Button iconHref={ this.isPlaying() ? 'icons/pause.png' : 'icons/play.png' } unpressableInnactive={ true }
+                        isActive={ this.iterator.haveNext() } onClick={ this.togglePlay }/>
                 <Button iconHref={ 'icons/next.png' } unpressableInnactive={ true }
                         isActive={ this.iterator.haveNext() } onClick={ this.playNext }/>
             </>,

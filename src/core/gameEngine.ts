@@ -116,7 +116,6 @@ export class GameEngine {
     lastAction = () => this.lastActionSnapshot().action;
 
     pushAction(action: GameAction): WorldState {
-        console.log('pushed', action);
         this.actions = gameActionReducer(this.actions, action, this.lastActionSnapshot());
         this.persistenceService.writeAll(this.actions);
         return this.lastActionSnapshot().world;

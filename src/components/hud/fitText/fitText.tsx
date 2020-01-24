@@ -51,6 +51,7 @@ class FitText extends Component<Props> {
         if (!this.ref.current) {
             return;
         }
+        const initialSizes = this.getBodySizeSnapshot();
         const maxWidthPx = this.calcLimit(this.props.maxWidth);
         const maxHeightPx = this.calcLimit(this.props.maxHeight);
 
@@ -61,9 +62,15 @@ class FitText extends Component<Props> {
         while (dims.width > maxWidthPx || dims.height > maxHeightPx) {
             this.setAndGetDims(--currentSize);
             await delay(0);
+            if (initialSizes != this.getBodySizeSnapshot()) {
+                await this.recalculate();
+                return;
+            }
             dims = this.getDims();
         }
     };
+
+    getBodySizeSnapshot = () => `${document.body.clientWidth}, ${document.body.clientHeight}`;
 
     setAndGetDims = (size: number) => {
         if (!this.ref.current) {
@@ -71,8 +78,7 @@ class FitText extends Component<Props> {
         }
         const element = this.ref.current;
 
-        const sizeString = size + 'px';
-        element.style.fontSize = sizeString;
+        element.style.fontSize = size + 'px';
         element.style.lineHeight = this.calcLimit(this.props.maxHeight) / this.props.lines + 'px';
     };
 

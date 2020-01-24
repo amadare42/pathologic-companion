@@ -1,6 +1,5 @@
 import * as idb from 'idb';
 import { ActionSnapshot } from './gameEngine';
-import { urlSerializer } from './gameActionsUrlSerializer';
 
 interface PathologicDb extends idb.DBSchema {
     actions: {
@@ -39,9 +38,6 @@ export class PersistenceService {
                 await store.put(action, i)
             }
         });
-        const message = urlSerializer.serialize(actions.map(a => a.action));
-        console.log(message);
-        // console.log(urlSerializer.deserialize(message));
     };
 
     getAll = () => {
@@ -56,29 +52,6 @@ export class PersistenceService {
             return value || null;
         });
     }
-
-    // updateTurn(turnData: TurnState): void {
-    //     this.dbPromise.then(async db => {
-    //         const tx = db.transaction('turns', 'readwrite');
-    //         const store = tx.objectStore('turns');
-    //         await store.put(turnData, turnData.turnNo);
-    //         const turns = await store.getAll();
-    //         console.log(serializer.serialize(turns));
-    //     });
-    // }
-    //
-    // getLatestTurn(): Promise<TurnState | null> {
-    //     return this.dbPromise.then(async db => {
-    //         const tx = db.transaction('turns', 'readonly');
-    //         const store = tx.objectStore('turns');
-    //         const count = await store.count();
-    //         if (count === 0) {
-    //             return null;
-    //         }
-    //         const value = await store.get(count);
-    //         return value || null;
-    //     });
-    // }
 }
 
 export const trackingService = new PersistenceService();

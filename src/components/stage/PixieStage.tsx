@@ -6,6 +6,7 @@ import { Stage } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
 import { WithSize } from './autoSizeContext';
 import { PageSizes } from '../theme/createTheme';
+import { inDebug } from '../../debug';
 
 interface Props extends WithSize {
     qualityPreset: QualityPreset;
@@ -16,8 +17,7 @@ interface State {
     resources: Resources | null;
 }
 
-// DEBUG THINGS
-window['PIXI'] = PIXI;
+inDebug(() => window['PIXI'] = PIXI);
 
 class PixieStage extends React.Component<Props, State> {
 

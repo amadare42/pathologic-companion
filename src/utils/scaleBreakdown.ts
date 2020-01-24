@@ -1,5 +1,5 @@
 import { Theme } from '../components/theme/createTheme';
-import { SIZES } from '../components/mapView/animationConstants';
+import { SIZES } from '../components/mapView/constants';
 
 export function breakScaleBkg(theme: Theme, height: number) {
     return {

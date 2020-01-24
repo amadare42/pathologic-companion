@@ -1,5 +1,6 @@
 import { allCharacters } from '../data/characters';
 import { GameAction, GameActionType } from '../model/actions';
+import { inDebug } from '../debug';
 
 export type ActionType = GameAction['type'];
 
@@ -177,4 +178,5 @@ class GameActionsUrlSerializer {
 }
 
 export const urlSerializer = new GameActionsUrlSerializer();
-(window as any).urlSerialier = urlSerializer;
+// @ts-ignore
+inDebug( () => window['urlSerialier'] = urlSerializer );
