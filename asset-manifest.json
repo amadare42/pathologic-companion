@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/pathologic-companion/static/css/main.6f8e46d3.chunk.css",
-    "main.js": "/pathologic-companion/static/js/main.e665942c.chunk.js",
-    "main.js.map": "/pathologic-companion/static/js/main.e665942c.chunk.js.map",
+    "main.js": "/pathologic-companion/static/js/main.580cc32c.chunk.js",
+    "main.js.map": "/pathologic-companion/static/js/main.580cc32c.chunk.js.map",
     "runtime-main.js": "/pathologic-companion/static/js/runtime-main.0b14d1ea.js",
     "runtime-main.js.map": "/pathologic-companion/static/js/runtime-main.0b14d1ea.js.map",
     "static/css/2.82f03f93.chunk.css": "/pathologic-companion/static/css/2.82f03f93.chunk.css",
     "static/js/2.8f36e148.chunk.js": "/pathologic-companion/static/js/2.8f36e148.chunk.js",
     "static/js/2.8f36e148.chunk.js.map": "/pathologic-companion/static/js/2.8f36e148.chunk.js.map",
     "index.html": "/pathologic-companion/index.html",
-    "precache-manifest.208e90923944301d6b6d3565c12a63a6.js": "/pathologic-companion/precache-manifest.208e90923944301d6b6d3565c12a63a6.js",
+    "precache-manifest.ee72900d84b4b10e663e4c24bc89970e.js": "/pathologic-companion/precache-manifest.ee72900d84b4b10e663e4c24bc89970e.js",
     "service-worker.js": "/pathologic-companion/service-worker.js",
     "static/css/2.82f03f93.chunk.css.map": "/pathologic-companion/static/css/2.82f03f93.chunk.css.map",
     "static/css/main.6f8e46d3.chunk.css.map": "/pathologic-companion/static/css/main.6f8e46d3.chunk.css.map",
@@ -21,6 +21,6 @@
     "static/css/2.82f03f93.chunk.css",
     "static/js/2.8f36e148.chunk.js",
     "static/css/main.6f8e46d3.chunk.css",
-    "static/js/main.e665942c.chunk.js"
+    "static/js/main.580cc32c.chunk.js"
   ]
 }
