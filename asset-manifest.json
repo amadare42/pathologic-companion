@@ -1,26 +1,26 @@
 {
   "files": {
-    "main.css": "/pathologic-companion/static/css/main.aaecfee7.chunk.css",
-    "main.js": "/pathologic-companion/static/js/main.97c137b7.chunk.js",
-    "main.js.map": "/pathologic-companion/static/js/main.97c137b7.chunk.js.map",
+    "main.css": "/pathologic-companion/static/css/main.6f8e46d3.chunk.css",
+    "main.js": "/pathologic-companion/static/js/main.b8435b0b.chunk.js",
+    "main.js.map": "/pathologic-companion/static/js/main.b8435b0b.chunk.js.map",
     "runtime-main.js": "/pathologic-companion/static/js/runtime-main.0b14d1ea.js",
     "runtime-main.js.map": "/pathologic-companion/static/js/runtime-main.0b14d1ea.js.map",
-    "static/css/2.8ff545c9.chunk.css": "/pathologic-companion/static/css/2.8ff545c9.chunk.css",
-    "static/js/2.dc747878.chunk.js": "/pathologic-companion/static/js/2.dc747878.chunk.js",
-    "static/js/2.dc747878.chunk.js.map": "/pathologic-companion/static/js/2.dc747878.chunk.js.map",
+    "static/css/2.82f03f93.chunk.css": "/pathologic-companion/static/css/2.82f03f93.chunk.css",
+    "static/js/2.e5954624.chunk.js": "/pathologic-companion/static/js/2.e5954624.chunk.js",
+    "static/js/2.e5954624.chunk.js.map": "/pathologic-companion/static/js/2.e5954624.chunk.js.map",
     "index.html": "/pathologic-companion/index.html",
-    "precache-manifest.4589c0505896af4950e90e0cae944bf2.js": "/pathologic-companion/precache-manifest.4589c0505896af4950e90e0cae944bf2.js",
+    "precache-manifest.24b12d4943715b1e3c025acb04c1b57a.js": "/pathologic-companion/precache-manifest.24b12d4943715b1e3c025acb04c1b57a.js",
     "service-worker.js": "/pathologic-companion/service-worker.js",
-    "static/css/2.8ff545c9.chunk.css.map": "/pathologic-companion/static/css/2.8ff545c9.chunk.css.map",
-    "static/css/main.aaecfee7.chunk.css.map": "/pathologic-companion/static/css/main.aaecfee7.chunk.css.map",
-    "static/js/2.dc747878.chunk.js.LICENSE": "/pathologic-companion/static/js/2.dc747878.chunk.js.LICENSE",
+    "static/css/2.82f03f93.chunk.css.map": "/pathologic-companion/static/css/2.82f03f93.chunk.css.map",
+    "static/css/main.6f8e46d3.chunk.css.map": "/pathologic-companion/static/css/main.6f8e46d3.chunk.css.map",
+    "static/js/2.e5954624.chunk.js.LICENSE": "/pathologic-companion/static/js/2.e5954624.chunk.js.LICENSE",
     "static/media/hand.1c03d420.svg": "/pathologic-companion/static/media/hand.1c03d420.svg"
   },
   "entrypoints": [
     "static/js/runtime-main.0b14d1ea.js",
-    "static/css/2.8ff545c9.chunk.css",
-    "static/js/2.dc747878.chunk.js",
-    "static/css/main.aaecfee7.chunk.css",
-    "static/js/main.97c137b7.chunk.js"
+    "static/css/2.82f03f93.chunk.css",
+    "static/js/2.e5954624.chunk.js",
+    "static/css/main.6f8e46d3.chunk.css",
+    "static/js/main.b8435b0b.chunk.js"
   ]
 }
