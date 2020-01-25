@@ -19,6 +19,8 @@ export const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 class Holdable extends React.Component<Props> {
 
+    containerRef = React.createRef<HTMLDivElement>();
+
     private timerId: any = 0;
     private clickDelay: number = 0;
     private longPressDelay: number = 0;
@@ -56,7 +58,7 @@ class Holdable extends React.Component<Props> {
     render() {
         return <div onMouseDown={ isMobile ? undefined : this.mouseDown }
                     onMouseUp={ isMobile ? undefined : this.mouseUp } onTouchStartCapture={ this.touchStart }
-                    onTouchEnd={ this.touchEnd }>
+                    onTouchEnd={ this.touchEnd } ref={this.containerRef}>
             { this.props.children }
         </div>
     }
@@ -70,12 +72,12 @@ class Holdable extends React.Component<Props> {
         this.holdStart();
     };
 
-    mouseUp = (ev: React.SyntheticEvent) => {
-        this.holdEnd();
+    mouseUp = (ev: React.MouseEvent) => {
+        this.holdEnd(ev);
     };
 
-    touchEnd = (ev: React.SyntheticEvent) => {
-        this.holdEnd();
+    touchEnd = (ev: React.TouchEvent) => {
+        this.holdEnd(ev);
     };
 
     holdStart = () => {
@@ -95,7 +97,7 @@ class Holdable extends React.Component<Props> {
         }
     };
 
-    holdEnd = () => {
+    holdEnd = (ev: React.MouseEvent | React.TouchEvent) => {
         const holdTime = Date.now() - this.holdStartTime;
         if (this.timerId) {
             clearTimeout(this.timerId);
@@ -103,7 +105,7 @@ class Holdable extends React.Component<Props> {
         }
         try {
             if (holdTime < this.longPressDelay) {
-                if (this.props.onClick && this.holding)
+                if (this.props.onClick && this.holding && this.isWithin(ev))
                     this.props.onClick();
             } else if (holdTime >= this.longPressDelay && this.props.onLongPressEnd) {
                 this.props.onLongPressEnd();
@@ -112,6 +114,20 @@ class Holdable extends React.Component<Props> {
             this.holding = false;
         }
     };
+
+    isWithin = (ev: React.MouseEvent | React.TouchEvent) => {
+        let rect = this.containerRef.current!.getBoundingClientRect();
+        let x, y = 0;
+        if ('touches' in ev) {
+            x = ev.changedTouches[0].clientX;
+            y = ev.changedTouches[0].clientY;
+        } else {
+            x = ev.clientX;
+            y = ev.clientY;
+        }
+        return (rect.x <= x && x <= rect.x + rect.width)
+            && (rect.y <= y && y <= rect.y + rect.height);
+    }
 }
 
 export default Holdable;

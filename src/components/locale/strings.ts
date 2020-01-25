@@ -3,7 +3,7 @@ import i18n from 'i18next';
 export const main = {
     turnNo: ['Хід {{turn}}', ['turn']],
     cannotEndSiegeOnSameTurn: ['Неможоливо закінчити облогу на тому ж ході, на якому вона почата!'],
-    cannotEndSiege: ['Неможливо закінчити облогу'],
+    cannotEndSiege: ['Неможливо закінчити Облогу'],
     cannotStartSiegeCauseMovements: ['Неможоливо почати облогу на ході з переміщенням'],
     cannotStartSiegeCauseContamination: ['Неможоливо почати облогу на ході з зараженням'],
     cannotStartSiegeCauseSiege: ['Неможоливо почати нову облогу на ході з закінченням попередньої'],
@@ -36,7 +36,7 @@ export const main = {
     finishTurn: ['Закінчити хід'],
     contaminate: ['Зараження'],
     contaminateOfLocation: ['Зараження {{locationNo, if-not:0}}«{{location}}»', ['locationNo', 'location']],
-    startSiege: ['Почати Обогу'],
+    startSiege: ['Почати Облогу'],
     finishSiege: ['Закінчити Облогу'],
     cancelAction: ['Відмінити дію'],
     cancelSpecificAction: ['Відмінити «{{action}}»', ['action']],

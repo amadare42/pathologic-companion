@@ -23,7 +23,7 @@ class FitText extends Component<Props> {
 
     constructor(props: Props) {
         super(props);
-        this.debouncedResize = _.debounce(this.recalculate, 100);
+        this.debouncedResize = _.debounce(this.recalculate, 200);
     }
 
     componentDidMount(): void {
