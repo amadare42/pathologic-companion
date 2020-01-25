@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "e040d78daef5ee7f2c14c97acd3c827b",
+    "revision": "413f35140f29c8d090aa63d1f52535e9",
     "url": "/pathologic-companion/index.html"
   },
   {
@@ -8,7 +8,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/pathologic-companion/static/css/2.82f03f93.chunk.css"
   },
   {
-    "revision": "6634bfaf4f369f19b271",
+    "revision": "7f5275bd3393909c263c",
     "url": "/pathologic-companion/static/css/main.6f8e46d3.chunk.css"
   },
   {
@@ -20,8 +20,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/pathologic-companion/static/js/2.8f36e148.chunk.js.LICENSE"
   },
   {
-    "revision": "6634bfaf4f369f19b271",
-    "url": "/pathologic-companion/static/js/main.580cc32c.chunk.js"
+    "revision": "7f5275bd3393909c263c",
+    "url": "/pathologic-companion/static/js/main.10851ddc.chunk.js"
   },
   {
     "revision": "f4b89b697bc4a5874f22",
