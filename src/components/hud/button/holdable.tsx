@@ -101,12 +101,15 @@ class Holdable extends React.Component<Props> {
             clearTimeout(this.timerId);
             this.timerId = 0;
         }
-        this.holding = false;
-        if (holdTime < this.longPressDelay) {
-            if (this.props.onClick)
-                this.props.onClick();
-        } else if (holdTime >= this.longPressDelay && this.props.onLongPressEnd) {
-            this.props.onLongPressEnd();
+        try {
+            if (holdTime < this.longPressDelay) {
+                if (this.props.onClick && this.holding)
+                    this.props.onClick();
+            } else if (holdTime >= this.longPressDelay && this.props.onLongPressEnd) {
+                this.props.onLongPressEnd();
+            }
+        } finally {
+            this.holding = false;
         }
     };
 }

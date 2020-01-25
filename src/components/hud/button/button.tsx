@@ -31,6 +31,7 @@ class Button extends React.Component<Props> {
     divRef = React.createRef<HTMLDivElement>();
 
     private onClick = () => {
+        ReactTooltip.hide(this.divRef.current!);
         if (this.props.tooltip && !this.props.onClick) {
             ReactTooltip.show(this.divRef.current!);
             setTimeout(() => ReactTooltip.hide(this.divRef.current!), 0);
@@ -62,7 +63,7 @@ class Button extends React.Component<Props> {
                     </div>
                 </Holdable>
                 { this.props.tooltip ?
-                    <ReactTooltip event={ isMobile ? undefined : 'mouseover' } eventOff={ isMobile ? undefined : 'mouseout' } id={ this.props.tooltip.id }
+                    <ReactTooltip event={ 'mouseover' } eventOff={ 'mouseout' } id={ this.props.tooltip.id }
                                   effect={ 'solid' } place={ this.props.tooltip?.direction || 'left' }
                                   delayHide={ 1000 }
                                   delayShow={ isMobile ? 0 : 1000 }

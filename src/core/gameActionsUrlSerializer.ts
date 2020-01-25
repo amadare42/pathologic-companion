@@ -37,20 +37,22 @@ const parseBits = (bits: string, position: { pointer: number }, len: number) => 
 }
 
 const alph = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-';
-const toB64 = (bitString: string) => {
+export const toB64 = (bitString: string) => {
     let acc = '';
+    if (bitString.length % 6 > 0) {
+        bitString = bitString + '0'.repeat(bitString.length % 6)
+    }
     for (let idx = 0; idx < bitString.length; idx += 6) {
         const strPart = bitString.substr(idx, 6);
-        const padded = strPart.padStart(6, '0');
-        const part = parseInt(padded, 2);
+        const paddedPart = strPart.padStart(6, '0');
+        const part = parseInt(paddedPart, 2);
         acc += alph[part];
     }
     return acc;
 };
-const fromB64 = (b64: string) => {
+export const fromB64 = (b64: string) => {
     let acc = '';
     for (let c of b64) {
-
         const part = alph.indexOf(c).toString(2);
         const padded = part.padStart(6, '0');
         acc += padded;
