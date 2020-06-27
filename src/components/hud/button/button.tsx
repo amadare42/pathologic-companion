@@ -63,7 +63,8 @@ class Button extends React.Component<Props> {
                     </div>
                 </Holdable>
                 { this.props.tooltip ?
-                    <ReactTooltip event={ 'mouseover' } eventOff={ 'mouseout' } id={ this.props.tooltip.id }
+                    <ReactTooltip key={ this.props.tooltip.id } event={ isMobile ? 'bogus-event' : 'mouseover' } eventOff={ isMobile ? 'bogus-event' : 'mouseout' }
+                                  id={ this.props.tooltip.id }
                                   effect={ 'solid' } place={ this.props.tooltip?.direction || 'left' }
                                   delayHide={ 1000 }
                                   delayShow={ isMobile ? 0 : 1000 }

@@ -53,6 +53,7 @@ class Holdable extends React.Component<Props> {
         if (this.timerId) {
             clearTimeout(this.timerId);
         }
+        this.holdEnd();
     }
 
     render() {
@@ -97,7 +98,7 @@ class Holdable extends React.Component<Props> {
         }
     };
 
-    holdEnd = (ev: React.MouseEvent | React.TouchEvent) => {
+    holdEnd = (ev?: React.MouseEvent | React.TouchEvent) => {
         const holdTime = Date.now() - this.holdStartTime;
         if (this.timerId) {
             clearTimeout(this.timerId);
@@ -105,7 +106,7 @@ class Holdable extends React.Component<Props> {
         }
         try {
             if (holdTime < this.longPressDelay) {
-                if (this.props.onClick && this.holding && this.isWithin(ev))
+                if (ev && this.props.onClick && this.holding && this.isWithin(ev))
                     this.props.onClick();
             } else if (holdTime >= this.longPressDelay && this.props.onLongPressEnd) {
                 this.props.onLongPressEnd();
