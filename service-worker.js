@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/pathologic-companion/precache-manifest.1d2ca74c87c51f3bbd5b0484442abf30.js"
+  "/pathologic-companion/precache-manifest.7b555321ddcd16688f0465937345f331.js"
 );
 
 self.addEventListener('message', (event) => {
