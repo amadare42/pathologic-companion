@@ -7,7 +7,8 @@ import { MapSnapshot } from '../../model';
 
 interface Props {
     onTurnEnd: () => void,
-    mapSnapshot: MapSnapshot
+    mapSnapshot: MapSnapshot,
+    uiPropsOverride?: UiProps
 }
 
 export class ConfirmEndOfTurnState extends BaseAppState<{}> {
@@ -32,7 +33,8 @@ export class ConfirmEndOfTurnState extends BaseAppState<{}> {
             mapSnapshot: {
                 ...this.props.mapSnapshot,
                 grayscale: true
-            }
+            },
+            ...this.props.uiPropsOverride
         };
     }
 }

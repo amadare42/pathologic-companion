@@ -16,6 +16,7 @@ interface Props {
     onCharactersSelected: (character: Character[]) => void;
     turnNo: number;
     emptyOk: boolean;
+    stateText: string;
 }
 
 export class SelectCharacterState extends BaseAppState<State> {
@@ -35,7 +36,7 @@ export class SelectCharacterState extends BaseAppState<State> {
         const { characters } = this.state;
         return {
             mainMsg: strings.turnNo({ turn: this.props.turnNo }) + ' - ' + strings.phase({ phase: 2 }),
-            msg: strings.selectCharacter(),
+            msg: `${this.props.stateText}: ${strings.selectCharacter()}`,
             modalController: this.modalController,
             bottomButtons: () => {
                 return <Button iconHref={ 'icons/checkmark.png' }

@@ -30,7 +30,12 @@ export class SelectBonusMovementLocationState extends BaseAppState<State> {
             mapSnapshot: this.getMapSnapshot(),
             mainMsg: strings.additionalMove(),
             msg: this.getMsg(),
-            onMapBottomButtons: () => <Button iconHref={ 'icons/undo_button.png' } onClick={ this.onUndo }/>,
+            onMapBottomButtons: () =>
+                <Button iconHref={ 'icons/cross.png' } onClick={ this.onUndo } tooltip={{
+                    id: 't-close',
+                    direction: 'left',
+                    tooltipHint: strings.cancelAction()
+                }}/>,
             modalController: NullModalController,
             bottomButtons: () => <>
                 <Button iconHref={ 'icons/checkmark.png' }

@@ -9,6 +9,7 @@ import { SelectBonusMovementLocationState } from './selectBonusMovementLocationS
 import { HealersActions } from '../../model/actions';
 import { formatter, GameEngine } from '../../core/gameEngine';
 import { PlayerEffectItem } from '../../data/healersEffects';
+import { ConfirmEndOfTurnState } from './confirmEndOfTurnState';
 
 interface Props {
     mapSnapshot: MapSnapshot;
@@ -124,6 +125,16 @@ export class HealersTurnState extends BaseAppState<State> {
     };
 
     onDone = () => {
+        this.routeProps.pushState(new ConfirmEndOfTurnState(this.routeProps, {
+            mapSnapshot: this.state.mapSnapshot,
+            onTurnEnd: this.onTurnEndConfirmed,
+            uiPropsOverride: {
+                modalController: null
+            }
+        }));
+    }
+
+    onTurnEndConfirmed = () => {
         this.props.game.pushAction({
             type: 'end-healers-turn'
         });

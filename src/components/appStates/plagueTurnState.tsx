@@ -154,7 +154,8 @@ export class PlagueTurnState extends BaseAppState<State> {
         this.routeProps.pushState(new SelectCharacterState(this.routeProps, {
             onCharactersSelected: this.onContaminatedCharacterSelected,
             emptyOk: false,
-            turnNo: this.game.state().turnNo
+            turnNo: this.game.state().turnNo,
+            stateText: strings.contaminate()
         }));
     };
 
@@ -235,14 +236,16 @@ export class PlagueTurnState extends BaseAppState<State> {
             this.routeProps.pushState(new SelectCharacterState(this.routeProps, {
                 onCharactersSelected: this.onCharactersSieged,
                 emptyOk: true,
-                turnNo: turn.turnNo
+                turnNo: turn.turnNo,
+                stateText: strings.finishSiege()
             }));
         } else {
             // Start siege
             this.routeProps.pushState(new SelectCharacterState(this.routeProps, {
                 onCharactersSelected: this.onSiegeStarted,
                 emptyOk: true,
-                turnNo: turn.turnNo
+                turnNo: turn.turnNo,
+                stateText: strings.startSiege()
             }));
         }
     };
