@@ -30,7 +30,7 @@
     "i18next": "^19.0.2",
     "idb": "^5.0.0",
     "js-easing-functions": "^1.0.3",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "pixi-particles": "^4.2.0",
     "pixi-viewport": "^4.4.1",
     "pixi.js": "latest",
